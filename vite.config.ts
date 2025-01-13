@@ -17,12 +17,11 @@ export default defineConfig({
       "/api": "http://localhost:3001",
     },
   },
-  ssr: {
-    noExternal: ["react", "react-dom"],
-  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),
+      "@client": path.resolve(__dirname, "src/client"),
+      "@server": path.resolve(__dirname, "src/server"),
     },
   },
 });
