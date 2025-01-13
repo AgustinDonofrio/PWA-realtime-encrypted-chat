@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+      "jsx": "react",
+      "composite": true,
+      "moduleResolution": "node", 
+      "types": ["vite/client"],
+      "outDir": "dist",
+      "allowSyntheticDefaultImports": true,
+      "allowImportingTsExtensions": true,
+      "emitDeclarationOnly": true,
+      "declaration": true,
+    },
+    "include": ["src/client/**/*"]
+  }
+  

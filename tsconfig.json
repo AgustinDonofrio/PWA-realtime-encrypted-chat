@@ -1,13 +1,30 @@
 {
   "compilerOptions": {
-    "target": "ES6",
-    "module": "commonjs",
-    "strict": true,
-    "esModuleInterop": true,
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "typeRoots": ["node_modules/@types"]
+    "module": "ESNext", 
+    "target": "ESNext", 
+    "moduleResolution": "Node",
+    "outDir": "dist",
+    "allowJs": false,
+    "strict": true, 
+    "esModuleInterop": true, 
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true, 
+    "skipLibCheck": true, 
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "jsx": "react",
+    "baseUrl": ".", 
+ 
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"],
-  "exclude": ["node_modules"]
+  "ts-node": {
+    "esm": true,
+    "experimentalSpecifierResolution": "node",
+  },  
+  "include": ["src/**/*",  "src/client/pages/App.tsx"], 
+  "exclude": ["node_modules", "dist"] ,
+  "references": [{ "path": "./tsconfig.client.json" }, { "path": "./tsconfig.server.json" }]
 }

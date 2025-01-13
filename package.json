@@ -1,0 +1,44 @@
+{
+  "name": "realtime_encrypted_chat",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "build:client": "tsc --project tsconfig.client.json",
+    "build:server": "tsc --project tsconfig.server.json",
+    "build": "vite build",
+    "start": "node dist/server/app.js",
+    "dev:server": "nodemon -e ts -w ./src -x npm run watch:serve",
+    "dev:client": "vite",
+    "watch:serve": "node --loader ts-node/esm src/server/app.ts",
+    "build:css": "postcss tailwind.css -o src/theme/tailwind.css",
+    "watch:css": "postcss tailwind.css -o src/theme/tailwind.css -w"
+  },
+  "author": "Mauricio Giaconía - Agustin D'onofrio",
+  "license": "ISC",
+  "dependencies": {
+    "@types/react": "^19.0.6",
+    "@types/react-dom": "^19.0.3",
+    "@types/react-router-dom": "^5.3.3",
+    "axios": "^1.7.9",
+    "crypto-js": "^4.2.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "firebase": "^11.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^6.4.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "autoprefixer": "^10.4.20",
+    "nodemon": "^3.1.9",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3",
+    "vite": "^6.0.7"
+  }
+}
