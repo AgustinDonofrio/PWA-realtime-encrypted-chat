@@ -6,7 +6,9 @@
     "outDir": "dist",
     "allowJs": false,
     "strict": true, 
-    "esModuleInterop": true, 
+    "useDefineForClassFields": true,
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "esModuleInterop": false, 
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true, 
     "skipLibCheck": true, 
@@ -16,7 +18,7 @@
     "noEmit": true,
     "emitDeclarationOnly": true,
     "declaration": true,
-    "jsx": "react",
+    "jsx": "react-jsx",
     "baseUrl": ".", 
  
   },
@@ -24,7 +26,7 @@
     "esm": true,
     "experimentalSpecifierResolution": "node",
   },  
-  "include": ["src/**/*",  "src/client/pages/App.tsx"], 
+  "include": ["src"], 
   "exclude": ["node_modules", "dist"] ,
   "references": [{ "path": "./tsconfig.client.json" }, { "path": "./tsconfig.server.json" }]
 }

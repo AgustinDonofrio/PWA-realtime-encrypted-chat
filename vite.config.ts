@@ -1,14 +1,18 @@
 import { defineConfig } from "vite";
+import { resolve } from "path";
 import react from "@vitejs/plugin-react";
-import path from "path";
+
+const root = resolve(__dirname, "src/client");
 
 export default defineConfig({
   plugins: [react()],
-  root: path.resolve(__dirname, "src/client"),
+  base: "./",
+  root,
+  appType: "mpa",
   build: {
-    outDir: path.resolve(__dirname, "dist/client"),
+    outDir: resolve(__dirname, "dist"),
     rollupOptions: {
-      input: path.resolve(__dirname, "src/client/layouts/index.html"),
+      input: resolve(root, "index.html"),
     },
   },
   server: {
@@ -19,9 +23,9 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src"),
-      "@client": path.resolve(__dirname, "src/client"),
-      "@server": path.resolve(__dirname, "src/server"),
+      "@": resolve(root),
+      "@client": resolve(__dirname, "src/client"),
+      "@server": resolve(__dirname, "src/server"),
     },
   },
 });
