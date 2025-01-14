@@ -11,8 +11,8 @@
     "dev:server": "nodemon -e ts -w ./src -x npm run watch:serve",
     "dev:client": "vite",
     "watch:serve": "node --loader ts-node/esm src/server/app.ts",
-    "build:css": "postcss tailwind.css -o src/theme/tailwind.css",
-    "watch:css": "postcss tailwind.css -o src/theme/tailwind.css -w"
+    "build:css": "postcss src/client/styles/index.css -o src/theme/tailwind.css",
+    "watch:css": "postcss src/client/styles/index.css -o src/theme/tailwind.css -w"
   },
   "author": "Mauricio Giaconía - Agustin D'onofrio",
   "license": "ISC",
@@ -35,7 +35,8 @@
     "@vitejs/plugin-vue": "^5.2.1",
     "autoprefixer": "^10.4.20",
     "nodemon": "^3.1.9",
-    "postcss": "^8.4.49",
+    "postcss": "^8.5.1",
+    "postcss-cli": "^11.0.0",
     "tailwindcss": "^3.4.17",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3",
