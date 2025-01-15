@@ -26,6 +26,7 @@ export default defineConfig({
       "@": resolve(root),
       "@client": resolve(__dirname, "src/client"),
       "@server": resolve(__dirname, "src/server"),
+      "@components": resolve(__dirname, "src/client/components"),
     },
   },
 });
