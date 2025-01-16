@@ -11,8 +11,8 @@
     "dev:server": "nodemon -e ts -w ./src -x npm run watch:serve",
     "dev:client": "vite",
     "watch:serve": "node --loader ts-node/esm src/server/app.ts",
-    "build:css": "postcss src/client/styles/index.css -o src/theme/tailwind.css",
-    "watch:css": "postcss src/client/styles/index.css -o src/theme/tailwind.css -w"
+    "build:css": "postcss src/client/styles/index.css -o src/client/theme/tailwind.css",
+    "watch:css": "postcss src/client/styles/index.css -o src/client/theme/tailwind.css -w"
   },
   "author": "Mauricio Giaconía - Agustin D'onofrio",
   "license": "ISC",
@@ -40,6 +40,7 @@
     "tailwindcss": "^3.4.17",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3",
-    "vite": "^6.0.7"
+    "vite": "^6.0.7",
+    "vite-plugin-pwa": "^0.21.1"
   }
 }

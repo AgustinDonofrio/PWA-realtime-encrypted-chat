@@ -4,12 +4,13 @@
       "composite": true,
       "moduleResolution": "node", 
       "types": ["vite/client"],
+      "lib": ["DOM", "ESNext", "WebWorker"],
       "outDir": "dist",
       "allowSyntheticDefaultImports": true,
       "allowImportingTsExtensions": true,
       "emitDeclarationOnly": true,
       "declaration": true,
     },
-    "include": ["src/client/**/*", "vite.config.ts"]
+    "include": ["src/client/**/*", "vite.config.ts", "src/client/main.tsx"]
   }
   

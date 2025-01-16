@@ -10,6 +10,20 @@ if (!rootElement) {
     throw new Error("No se encontró el elemento root en el HTML");
 }
 
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        console.log(navigator)
+        navigator.serviceWorker.register('/service-worker.ts').then( //TODO: Cambiar extension a .js cuando se haga el build (despliegue a produccion)
+            (registration) => {
+                console.log('Service Worker registrado:', registration);
+            },
+            (error) => {
+                console.error('Error al registrar el Service Worker:', error);
+            }
+        );
+    });
+}
+
 // Crea la raíz para React
 const root = ReactDOM.createRoot(rootElement);
 
