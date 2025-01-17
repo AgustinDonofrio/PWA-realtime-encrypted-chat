@@ -1,5 +1,11 @@
 {
     "compilerOptions": {
+      "target": "es5",
+      "module": "es2020",
+      "strict": true,
+      "esModuleInterop": true,
+      "skipLibCheck": true,
+      "forceConsistentCasingInFileNames": true,  
       "jsx": "react",
       "composite": true,
       "moduleResolution": "node", 
@@ -14,3 +20,5 @@
     "include": ["src/client/**/*", "vite.config.ts", "src/client/main.tsx"]
   }
   
+  
+

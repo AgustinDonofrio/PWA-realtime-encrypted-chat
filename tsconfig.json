@@ -28,5 +28,5 @@
   },  
   "include": ["src", "src/client/main.tsx", "src/service-worker.js"], 
   "exclude": ["node_modules", "dist"] ,
-  "references": [{ "path": "./tsconfig.client.json" }, { "path": "./tsconfig.server.json" }]
+  "references": [{ "path": "./tsconfig.client.json" }]
 }
