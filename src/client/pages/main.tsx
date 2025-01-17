@@ -13,7 +13,7 @@ if (!rootElement) {
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         console.log(navigator)
-        navigator.serviceWorker.register('/service-worker.js').then( //TODO: Cambiar extension a .js cuando se haga el build (despliegue a produccion)
+        navigator.serviceWorker.register('/service-worker.js').then(
             (registration) => {
                 console.log('Service Worker registrado:', registration);
             },

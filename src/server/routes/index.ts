@@ -1,1 +1,8 @@
-// Acá se importará cada archivo de ruta que corresponda para que se centralice todo en un unico archivo
+import { Router } from "express";
+import userRoutes from "./user";
+
+const router = Router();
+
+router.use("/user", userRoutes);
+
+export default router;

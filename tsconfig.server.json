@@ -2,10 +2,8 @@
     "compilerOptions": {
       "composite": true,
       "moduleResolution": "node", 
-      "types": ["vite/client"],
       "outDir": "dist",
       "allowSyntheticDefaultImports": true,
-      "jsx": "react",
       "allowImportingTsExtensions": true,
       "emitDeclarationOnly": true,
       "declaration": true,
