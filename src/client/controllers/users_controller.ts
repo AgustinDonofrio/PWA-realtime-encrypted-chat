@@ -41,3 +41,26 @@ export const createUser = async (userData: user): Promise<authResponse> => {
     return response;
   }
 };
+
+export const loginUser = async (userData: user): Promise<authResponse> => {
+  const response = {
+    success: false,
+    msg: "",
+  };
+  try {
+    const userLogged = await signInWithEmailAndPassword(
+      auth,
+      userData.email,
+      userData.password
+    );
+    const user = userLogged.user;
+    response.success = true;
+    response.msg = "User logged successfuly";
+    return response;
+  } catch (error: any) {
+    console.log("[X] Login user error ->", error);
+    response.success = false;
+    response.msg = error.message;
+    return response;
+  }
+};

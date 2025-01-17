@@ -26,7 +26,7 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-usersController.createUser({ name: "Mauricio Giaco", email: "mauriciogiaco@gmail.com", password: "12321414512" }).then(response => console.log("RESPONSEEEE", response)).finally(() => console.log("Termine :p"));
+usersController.createUser({ name: "Mauricio Giaco", email: "test@test.com", password: "test1234" }).then(response => console.log("Response ->", response)).finally(() => console.log("Termine :p"));
 
 // Crea la raíz para React
 const root = ReactDOM.createRoot(rootElement);
