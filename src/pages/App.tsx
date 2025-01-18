@@ -3,15 +3,30 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Login from "./login/Login";
 import ChatPage from "./chat/ChatPage";
 import ContactsPage from "./contacts/ContactsPage";
+import PublicRoute from "../components/routes/PublicRoute";
+import PrivateRoute from "../components/routes/PrivateRoute";
 
 const App: React.FC = () => {
     return (
       <Router>
           <Routes>
-            <Route path="/" element={<Login />} />
-            <Route path="/contacts" element={<ContactsPage />} />
-            {/* <Route path="/chat/:contactId" element={<ChatPage />} /> */}
-            <Route path="/chat" element={<ChatPage />} />
+            <Route path="/" element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            } />
+
+            <Route path="/contacts" element={
+              <PrivateRoute>
+                <ContactsPage /> 
+              </PrivateRoute>
+            } />
+
+            <Route path="/chat" element={
+              <PrivateRoute>
+                <ChatPage />
+              </PrivateRoute>
+            } />
           </Routes>
       </Router>
     );
