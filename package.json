@@ -4,13 +4,9 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "build:client": "tsc --project tsconfig.client.json",
-    "build:server": "tsc --project tsconfig.server.json",
     "build": "vite build",
     "start": "node dist/server/app.js",
-    "dev:server": "nodemon -e ts -w ./src -x npm run watch:serve",
-    "dev:client": "vite",
-    "watch:serve": "node --loader ts-node/esm src/server/app.ts",
+    "dev": "vite",
     "build:css": "postcss src/client/styles/index.css -o src/client/theme/tailwind.css",
     "watch:css": "postcss src/client/styles/index.css -o src/client/theme/tailwind.css -w"
   },
@@ -23,7 +19,6 @@
     "axios": "^1.7.9",
     "crypto-js": "^4.2.0",
     "dotenv": "^16.4.7",
-    "express": "^4.21.2",
     "firebase": "^11.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -33,14 +28,13 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
+    "@types/node": "^22.10.7",
     "@vitejs/plugin-react": "^4.3.4",
     "@vitejs/plugin-vue": "^5.2.1",
     "autoprefixer": "^10.4.20",
-    "nodemon": "^3.1.9",
     "postcss": "^8.5.1",
     "postcss-cli": "^11.0.0",
     "tailwindcss": "^3.4.17",
-    "ts-node": "^10.9.2",
     "typescript": "^5.7.3",
     "vite": "^6.0.7",
     "vite-plugin-pwa": "^0.21.1"
