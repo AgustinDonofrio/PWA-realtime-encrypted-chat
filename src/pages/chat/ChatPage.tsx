@@ -19,8 +19,7 @@ const ChatPage: React.FC = () => {
 
   return (
     <div
-      className="h-screen max-w-[390px] mx-auto bg-main-color text-white flex flex-col relative shadow-lg"
-      style={{ height: "844px" }}
+      className="h-screen w-full mx-auto bg-main-color text-white flex flex-col relative shadow-lg"
     >
       {/* Header */}
       <ChatHeader name="Ethan Johnson" image="Ethan.jpg" />

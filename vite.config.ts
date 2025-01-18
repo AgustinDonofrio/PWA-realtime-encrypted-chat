@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const root = resolve(__dirname, "src/client");
+const root = resolve(__dirname, "src");
 
 export default defineConfig({
   plugins: [
@@ -80,9 +80,9 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": resolve(root),
-      "@client": resolve(__dirname, "src/client"),
-      "@server": resolve(__dirname, "src/server"),
-      "@components": resolve(__dirname, "src/client/components"),
+      "@client": resolve(__dirname, "src"),
+      "@components": resolve(__dirname, "src/components"),
+      "@pages": resolve(__dirname, "src/pages"),
     },
   },
 });
