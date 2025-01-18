@@ -26,7 +26,7 @@
     "esm": true,
     "experimentalSpecifierResolution": "node",
   },  
-  "include": ["src", "src/client/main.tsx", "src/service-worker.js"], 
+  "include": ["src", "src/main.tsx", "src/service-worker.js"], 
   "exclude": ["node_modules", "dist"] ,
   "references": [{ "path": "./tsconfig.client.json" }]
 }

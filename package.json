@@ -7,8 +7,8 @@
     "build": "vite build",
     "start": "node dist/server/app.js",
     "dev": "vite",
-    "build:css": "postcss src/client/styles/index.css -o src/client/theme/tailwind.css",
-    "watch:css": "postcss src/client/styles/index.css -o src/client/theme/tailwind.css -w"
+    "build:css": "postcss src/styles/index.css -o src/theme/tailwind.css",
+    "watch:css": "postcss src/styles/index.css -o src/theme/tailwind.css -w"
   },
   "author": "Mauricio Giaconía - Agustin D'onofrio",
   "license": "ISC",
