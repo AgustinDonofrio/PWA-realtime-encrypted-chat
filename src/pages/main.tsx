@@ -27,20 +27,6 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-//authController.createUser({ name: "Mauricio Giaco", email: "test@test.com", password: "test1234" }).then(response => console.log("Response ->", response)).finally(() => console.log("Termine :p"));
-
-authController.createUser({ name: "Mauricio Giaco", email: "test@test.com", password: "test1234" })
-    .then(response => {
-        if (!response.success && response.msg.includes("auth/email-already-in-use")) {
-            console.log("El usuario ya existe, intentando iniciar sesión...");
-            return authController.loginUser({ name: "Mauricio Giaco", email: "test@test.com", password: "test1234" });
-        }
-        return response;
-    })
-    .then(response => console.log("Login/Create Response ->", response))
-    .catch(err => console.error("Error ->", err));
-
-
 // Crea la raíz para React
 const root = ReactDOM.createRoot(rootElement);
 

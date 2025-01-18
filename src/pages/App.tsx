@@ -22,7 +22,7 @@ const App: React.FC = () => {
               </PrivateRoute>
             } />
 
-            <Route path="/chat" element={
+            <Route path="/chat/:id" element={
               <PrivateRoute>
                 <ChatPage />
               </PrivateRoute>
