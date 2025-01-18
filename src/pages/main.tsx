@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client"; // Nota: Aquí se importa `react-dom/client`
-import * as usersController from "../controllers/users_controller.ts"
+import * as authController from "../controllers/authController.ts"
 import App from "./App.tsx";
 import "../styles/index.css";
 
@@ -26,7 +26,7 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-usersController.createUser({ name: "Mauricio Giaco", email: "test@test.com", password: "test1234" }).then(response => console.log("Response ->", response)).finally(() => console.log("Termine :p"));
+authController.createUser({ name: "Mauricio Giaco", email: "test@test.com", password: "test1234" }).then(response => console.log("Response ->", response)).finally(() => console.log("Termine :p"));
 
 // Crea la raíz para React
 const root = ReactDOM.createRoot(rootElement);
