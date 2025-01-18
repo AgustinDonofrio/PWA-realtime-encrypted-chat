@@ -65,7 +65,6 @@ export default defineConfig({
   ],
   base: "./",
   root,
-  appType: "mpa",
   build: {
     outDir: resolve(__dirname, "dist"),
     rollupOptions: {

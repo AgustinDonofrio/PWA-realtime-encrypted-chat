@@ -1,24 +1,24 @@
 {
-    "compilerOptions": {
-      "target": "es5",
-      "module": "es2020",
-      "strict": true,
-      "esModuleInterop": true,
-      "skipLibCheck": true,
-      "forceConsistentCasingInFileNames": true,  
-      "jsx": "react",
-      "composite": true,
-      "moduleResolution": "node", 
-      "types": ["vite/client"],
-      "lib": ["DOM", "ESNext", "WebWorker"],
-      "outDir": "dist",
-      "allowSyntheticDefaultImports": true,
-      "allowImportingTsExtensions": true,
-      "emitDeclarationOnly": true,
-      "declaration": true,
-    },
-    "include": ["src/client/**/*", "vite.config.ts", "src/client/main.tsx"]
-  }
+  "compilerOptions": {
+    "target": "es5",
+    "module": "es2020",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,  
+    "jsx": "react",
+    "composite": true,
+    "moduleResolution": "node", 
+    "types": ["vite/client"],
+    "lib": ["DOM", "ESNext", "WebWorker"],
+    "outDir": "dist",
+    "allowSyntheticDefaultImports": true,
+    "allowImportingTsExtensions": true,
+    "emitDeclarationOnly": true,
+    "declaration": true,
+  },
+  "include": ["src/client/**/*", "vite.config.ts", "src/client/main.tsx"]
+}
   
   
 
