@@ -7,7 +7,7 @@ import { collection, getDocs } from "firebase/firestore";
 import { mapAuthCodeToMessage } from "../helpers/utils";
 import bcrypt from "bcryptjs";
 interface user {
-  name: string;
+  name?: string;
   email: string;
   password: string;
 }
@@ -24,11 +24,10 @@ export const createAccount = async (userData: user): Promise<authResponse> => {
   };
   try {
     console.log("[x] Creating user...");
-    const hashedPassword = bcrypt.hashSync(userData.password, 10);
     const userCredential = await createUserWithEmailAndPassword(
       auth,
       userData.email,
-      hashedPassword
+      userData.password
     );
     const user = userCredential.user;
     response.success = true;
@@ -42,12 +41,13 @@ export const createAccount = async (userData: user): Promise<authResponse> => {
   }
 };
 
-export const loginUser = async (userData: user): Promise<authResponse> => {
+export const loginAccount = async (userData: user): Promise<authResponse> => {
   const response = {
     success: false,
     msg: "",
   };
   try {
+    console.log("LLEGA ESTA DATA :D ", userData);
     const userLogged = await signInWithEmailAndPassword(
       auth,
       userData.email,

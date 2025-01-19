@@ -180,9 +180,8 @@ const Register: React.FC = () => {
                 </h1>
                 <form className="flex flex-col space-y-10">
                     {inputsType.map((input, index) => {
-                        return <div className="space-y-1">
+                        return <div className="space-y-1" key={index}>
                             <Input
-                                key={index}
                                 type={input.type}
                                 id={input.id}
                                 inputName={input.name}
