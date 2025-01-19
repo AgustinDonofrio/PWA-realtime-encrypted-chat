@@ -29,16 +29,10 @@ const Register: React.FC = () => {
             isValid: false
         },
     })
-    const [repeatedPassword, setRepeatedPassword] = useState<string>("")
-
-    const validateName = (value: string): boolean => {
-        return value.length > 0;
-    };
-
-    const validateEmail = (value: string): boolean => {
-        return value.includes("@");
-    };
-
+    const [repeatedPassword, setRepeatedPassword] = useState<RequiredValue>({
+        value: "",
+        isValid: false
+    })
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -54,9 +48,7 @@ const Register: React.FC = () => {
                     ? Utils.validateName(value)
                     : name === "email"
                         ? Utils.validateEmail(value)
-                        : name === "password"
-                            ? Utils.validatePassword(value, repeatedPassword)
-                            : prev[name as keyof User].isValid;
+                        : name == "password" ? Utils.validatePassword(value, repeatedPassword.value) : prev[name as keyof User].isValid;
             return {
                 ...prev,
                 [name]: {
@@ -95,22 +87,24 @@ const Register: React.FC = () => {
             placeHolder: "Repeat password",
             name: "repeatedPassword",
             id: "inputRegisterRepeatPassword",
-            ChangeAction: (e: React.ChangeEvent<HTMLInputElement>) => setRepeatedPassword(e.target.value)
+            ChangeAction: (e: React.ChangeEvent<HTMLInputElement>) => handleRepeatedPasswordChange(e)
         }
     ]
 
-    useEffect(() => {
-        console.log("Estoy entrando en cada cambio del repeated XD", userData.password.value, repeatedPassword)
+    const handleRepeatedPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setRepeatedPassword({
+            value: e.target.value,
+            isValid: Utils.validatePassword(userData.password.value, e.target.value),
+        });
         setUserData((prev) => ({
             ...prev,
             password: {
                 ...prev.password,
-                isValid: Utils.validatePassword(prev.password.value, repeatedPassword),
+                isValid: Utils.validatePassword(prev.password.value, e.target.value),
             },
         }));
-        console.log("Estoy saliendo en cada cambio del repeated XD", userData.password.value, repeatedPassword)
-        console.log(userData)
-    }, [repeatedPassword])
+    };
+
 
     return (
         <div className="flex h-full items-center justify-center min-h-screen bg-main-color px-4">
@@ -134,7 +128,8 @@ const Register: React.FC = () => {
                     <div className="flex flex-col space-y-3">
                         <button
                             type="submit"
-                            className="w-full py-3 text-white bg-royal-blue rounded-xl hover:bg-blue-500 focus:outline-none"
+                            className={`w-full py-3 text-white ${Object.values(userData).every((field) => field.isValid)
+                                ? 'hover:bg-blue-500 bg-royal-blue' : 'red'} focus:outline-none rounded-xl`}
                         >
                             Register
                         </button>
