@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Input from "../../components/input/input";
 import * as Utils from "../../helpers/utils"
-import { Navigate, useNavigate, } from "react-router-dom";
+import { useNavigate, } from "react-router-dom";
+import { createAccount } from "../../controllers/authController"
+import { createUser } from "../../controllers/userController"
 
 interface RequiredValue {
     value: string,
@@ -109,22 +111,57 @@ const Register: React.FC = () => {
     };
 
 
+    const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>): Promise<boolean> => {
+        e.preventDefault()
+        try {
+            const registerResponse = await createAccount({ name: userData.name.value, email: userData.email.value, password: userData.password.value })
+
+            if (!registerResponse.success) {
+                console.log("[x] Register error -> ", registerResponse.msg)
+                return registerResponse.success
+            }
+
+            const userToCreate = {
+                name: userData.name.value,
+                email: userData.email.value,
+                contacts: {},
+                status: "-",
+                profilePicture: ""
+            }
+
+            const createUserResponse = await createUser(userToCreate);
+
+            if (!createUserResponse.success) {
+                console.log("[x] Register error -> ", createUserResponse.msg);
+                return createUserResponse.success;
+            }
+
+            console.log("[x] Account created successfully :)")
+            return true;
+        } catch (err) {
+            console.log("[x] HandleSubmit error -> ", err);
+            return false;
+        }
+    }
     return (
         <div className="flex h-full items-center justify-center min-h-screen bg-main-color px-4">
             <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl">
                 <h1 className="text-2xl font-bold text-center text-white mb-6">
                     Create an account
                 </h1>
-                <form className="flex flex-col space-y-6">
+                <form className="flex flex-col space-y-10">
                     {inputsType.map((input, index) => {
-                        return <Input
-                            key={index}
-                            type={input.type}
-                            id={input.id}
-                            inputName={input.name}
-                            placeholder={input.placeHolder}
-                            className="bg-steel rounded-xl"
-                            onChangeAction={input.ChangeAction}></Input>
+                        return <div className="space-y-1">
+                            <Input
+                                key={index}
+                                type={input.type}
+                                id={input.id}
+                                inputName={input.name}
+                                placeholder={input.placeHolder}
+                                className="bg-steel rounded-xl"
+                                onChangeAction={input.ChangeAction}></Input>
+                            <span className="absolute text-error-red">{!userData[input.name as keyof User]?.isValid && userData[input.name as keyof User]?.value.length > 0 ? input.type == "password" ? "The password is not valid or not match" : "The value entered is not valid" : ""}</span>
+                        </div>
                     }
                     )}
 
@@ -134,6 +171,7 @@ const Register: React.FC = () => {
                             className={`w-full py-3 text-white ${Object.values(userData).every((field) => field.isValid)
                                 ? 'hover:bg-blue-500 bg-royal-blue' : 'bg-disabled-gray'} focus:outline-none rounded-xl`}
                             disabled={!Object.values(userData).every((field) => field.isValid)}
+                            onClick={handleSubmit}
                         >
                             Register
                         </button>
