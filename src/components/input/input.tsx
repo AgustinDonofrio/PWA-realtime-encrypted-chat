@@ -5,8 +5,8 @@ interface InputProps {
   id: string;
   placeholder: string;
   className?: string;
-  inputName: string;
-  onChangeAction: (e: React.ChangeEvent<HTMLInputElement>) => any | undefined;
+  inputName: string | undefined;
+  onChangeAction: ((e: React.ChangeEvent<HTMLInputElement>) => any) | undefined;
 }
 
 const Input: React.FC<InputProps> = ({ type, id, placeholder, className, inputName, onChangeAction }) => {

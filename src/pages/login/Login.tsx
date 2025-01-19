@@ -14,12 +14,16 @@ const Login: React.FC = () => {
             id="email"
             placeholder="Email"
             className=" bg-steel rounded-xl"
+            inputName="email"
+            onChangeAction={undefined}
           />
           <Input
             type="password"
             id="password"
             placeholder="Password"
             className=" bg-steel rounded-xl"
+            inputName="password"
+            onChangeAction={undefined}
           />
 
           <div className="flex flex-col space-y-3">
