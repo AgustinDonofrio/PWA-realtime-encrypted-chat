@@ -3,6 +3,7 @@ import { doc, getDoc, collection } from 'firebase/firestore';
 import { db } from '../../firebase/firebase.config';
 
 import ContactCard from "./ContactCard";
+import SearchBar from './SearchBar';
 
 const ContactList: React.FC = () => {
   const [contacts, setContacts] = useState<
