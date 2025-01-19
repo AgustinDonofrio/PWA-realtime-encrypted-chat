@@ -3,7 +3,8 @@ import Input from "../../components/input/input";
 import Snackbar from "../../components/snackbar/Snackbar";
 import { useNavigate } from "react-router-dom";
 import * as Utils from "../../helpers/utils";
-import { loginAccount } from "../../controllers/authController";
+import { loginAccount, loginWithGoogle, logout } from "../../controllers/authController";
+import { getUserByEmail, createUser } from "../../controllers/userController";
 import Spinner from "../../components/spinner/Spinner";
 interface RequiredValue {
   value: string,
@@ -113,11 +114,54 @@ const Login: React.FC = () => {
         console.log("[x] Login HandleSubmit error -> ", err);
         showSnackbar("User login failed. Please try again later.", "error")
         setLoadingSubmit(false);
-        return false;
       }
     }
-    setLoadingSubmit(false);
     return false
+  }
+
+  const handleGoogleSubmit = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>): Promise<boolean> => {
+    e.preventDefault();
+    setLoadingSubmit(true);
+    try {
+
+      const googleResponse = await loginWithGoogle();
+
+      if (!googleResponse.success) {
+        console.log("[x] Google login error -> ", googleResponse.msg)
+        showSnackbar(googleResponse.msg, "error")
+        setLoadingSubmit(false);
+      }
+
+      const userExists = await getUserByEmail(googleResponse.google.user.email);
+
+      if (!userExists.success) {
+        const userToCreate = {
+          name: googleResponse.google.user.displayName,
+          email: googleResponse.google.user.email,
+          contacts: {},
+          profilePicture: googleResponse.google.user.photoURL,
+          status: "-"
+        }
+
+        const userResponse = await createUser(userToCreate);
+
+        if (!userResponse.success) {
+          console.log("[x] Google login error -> ", userResponse.msg);
+          showSnackbar(userResponse.msg, "error");
+          setLoadingSubmit(false);
+          await logout();
+          return userResponse.success;
+        }
+      }
+
+      setLoadingSubmit(false);
+      return true;
+    } catch (err) {
+      console.log("[x] Login HandleGoogleSubmit error -> ", err);
+      showSnackbar("Google login failed. Please try again later.", "error")
+      setLoadingSubmit(false);
+    }
+    return false;
   }
 
   return (
@@ -144,9 +188,10 @@ const Login: React.FC = () => {
           <div className="flex flex-col space-y-3">
             <button
               type="button"
-              className="w-full py-3 text-gray-200 bg-steel border-steel rounded-xl hover:bg-gray-600 focus:outline-none"
+              className="w-full min-h-12 py-3 text-gray-200 bg-steel border-steel rounded-xl hover:bg-gray-600 focus:outline-none"
+              onClick={handleGoogleSubmit}
             >
-              Login with Google
+              {loadingSubmit ? <Spinner size={20}></Spinner> : "Login with Google"}
             </button>
             <button
               type="submit"
