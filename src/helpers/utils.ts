@@ -19,8 +19,6 @@ export const validatePassword = (
 export const validateName = (name: string): boolean => {
   if (name.trim().length == 0) return false;
 
-  console.log("Estoy entrando?", name);
-
   if (name.length < NAME_MIN_LENGTH) return false;
 
   return true;

@@ -2,22 +2,26 @@ import { db, auth } from "../firebase/firebase.config";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
 } from "firebase/auth";
-import { collection, getDocs } from "firebase/firestore";
 import { mapAuthCodeToMessage } from "../helpers/utils";
-import bcrypt from "bcryptjs";
-interface user {
+
+interface User {
   name?: string;
   email: string;
   password: string;
 }
 
-interface authResponse {
+interface AuthResponse {
   success: boolean;
   msg: string;
+  data?: User | null | "";
+  google?: any;
 }
 
-export const createAccount = async (userData: user): Promise<authResponse> => {
+export const createAccount = async (userData: User): Promise<AuthResponse> => {
   const response = {
     success: false,
     msg: "",
@@ -41,13 +45,12 @@ export const createAccount = async (userData: user): Promise<authResponse> => {
   }
 };
 
-export const loginAccount = async (userData: user): Promise<authResponse> => {
+export const loginAccount = async (userData: User): Promise<AuthResponse> => {
   const response = {
     success: false,
     msg: "",
   };
   try {
-    console.log("LLEGA ESTA DATA :D ", userData);
     const userLogged = await signInWithEmailAndPassword(
       auth,
       userData.email,
@@ -61,6 +64,51 @@ export const loginAccount = async (userData: user): Promise<authResponse> => {
     console.log("[X] Login user error ->", error);
     response.success = false;
     response.msg = mapAuthCodeToMessage(error.code);
+    return response;
+  }
+};
+
+export const loginWithGoogle = async (): Promise<AuthResponse> => {
+  const response = {
+    success: false,
+    msg: "",
+    data: null,
+    google: {},
+  };
+
+  try {
+    console.log("[x] Logging in with Google...");
+
+    // Crea un proveedor de autenticación de Google
+    const provider = new GoogleAuthProvider();
+
+    // Muestra un popup para iniciar sesión con Google
+    const userCredential = await signInWithPopup(auth, provider);
+
+    response.google = userCredential;
+    response.success = true;
+    response.msg = "Login with Google successful";
+    // Devuelve los detalles del usuario autenticado
+    return response;
+  } catch (error: any) {
+    console.log("[X] Login with Google error ->", error);
+    response.success = false;
+    response.msg = mapAuthCodeToMessage(error.code); // Mapea el error si es necesario
+    return response;
+  }
+};
+
+export const logout = async (): Promise<AuthResponse> => {
+  const response = {
+    success: true,
+    msg: "",
+  };
+  try {
+    await signOut(auth);
+    return response;
+  } catch (err: any) {
+    response.success = false;
+    response.msg = mapAuthCodeToMessage(err.code); // Mapea el error si es necesario
     return response;
   }
 };
