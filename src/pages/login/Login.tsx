@@ -1,7 +1,10 @@
 import React from "react";
 import Input from "../../components/input/input";
+import { useNavigate } from "react-router-dom";
 
 const Login: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="flex h-full items-center justify-center min-h-screen bg-main-color px-4">
       <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl">
@@ -43,7 +46,7 @@ const Login: React.FC = () => {
             <div className="text-center text-gray-400">
               <p className="text-sm">
                 New user?{" "}
-                <a href="#" className="font-medium text-blue-500 hover:underline">
+                <a href="#" onClick={() => { navigate("/register") }} className="font-medium text-blue-500 hover:underline">
                   Register
                 </a>
               </p>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Input from "../../components/input/input";
 import * as Utils from "../../helpers/utils"
+import { Navigate, useNavigate, } from "react-router-dom";
 
 interface RequiredValue {
     value: string,
@@ -33,6 +34,8 @@ const Register: React.FC = () => {
         value: "",
         isValid: false
     })
+
+    const navigate = useNavigate();
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -129,7 +132,8 @@ const Register: React.FC = () => {
                         <button
                             type="submit"
                             className={`w-full py-3 text-white ${Object.values(userData).every((field) => field.isValid)
-                                ? 'hover:bg-blue-500 bg-royal-blue' : 'red'} focus:outline-none rounded-xl`}
+                                ? 'hover:bg-blue-500 bg-royal-blue' : 'bg-disabled-gray'} focus:outline-none rounded-xl`}
+                            disabled={!Object.values(userData).every((field) => field.isValid)}
                         >
                             Register
                         </button>
@@ -137,7 +141,7 @@ const Register: React.FC = () => {
                         <div className="text-center text-gray-400">
                             <p className="text-sm">
                                 Do you have an account?{" "}
-                                <a href="#" className="font-medium text-blue-500 hover:underline">
+                                <a href="#" onClick={() => { navigate("/") }} className="font-medium text-blue-500 hover:underline">
                                     Login
                                 </a>
                             </p>
