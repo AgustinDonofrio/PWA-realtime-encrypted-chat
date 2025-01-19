@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client"; // Nota: Aquí se importa `react-dom/client`
 import * as authController from "../controllers/authController.ts"
 import App from "./App.tsx";
+import { AuthProvider } from "../context/AuthContext";
 import "../styles/index.css";
 
 // Obtén el elemento raíz del DOM
@@ -26,14 +27,14 @@ if ('serviceWorker' in navigator) {
     });
 }
 
-authController.createUser({ name: "Mauricio Giaco", email: "test@test.com", password: "test1234" }).then(response => console.log("Response ->", response)).finally(() => console.log("Termine :p"));
-
 // Crea la raíz para React
 const root = ReactDOM.createRoot(rootElement);
 
 // Renderiza el componente App
 root.render(
     <React.StrictMode>
-        <App />
+        <AuthProvider>
+            <App />
+        </AuthProvider>
     </React.StrictMode>
 );

@@ -10,7 +10,6 @@ const ContactsPage: React.FC = () => {
       className="h-screen w-full mx-auto bg-main-color flex flex-col relative shadow-lg"
     >
       <Header />
-      <SearchBar />
       <ContactList />
       <button
         className="absolute bottom-6 right-6 bg-royal-blue w-14 h-14 rounded-full flex items-center justify-center shadow-md"

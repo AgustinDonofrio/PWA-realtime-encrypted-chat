@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { doc, getDoc, collection } from 'firebase/firestore';
-import { db } from '../../firebase/firebase.config';
-
+import { getUserById } from '../../controllers/userController';
 import ContactCard from "./ContactCard";
 import SearchBar from './SearchBar';
+import Spinner from '../spinner/Spinner';
+
 
 const ContactList: React.FC = () => {
   const [contacts, setContacts] = useState<
-    { name: string; status: string; image: string }[]
+    { name: string; status: string; image: string, id: string }[]
   >([]);
   const [loading, setLoading] = useState(true);
 
@@ -17,36 +17,32 @@ const ContactList: React.FC = () => {
   const fetchContacts = async () => {
     try {
       setLoading(true);
-      console.log("[X] Obteniendo contactos...");
 
       // 1. Obtener el documento del usuario principal
-      const userDocRef = doc(db, "users", userDocId);
-      const userDocSnap = await getDoc(userDocRef);
+      const userData = await getUserById(userDocId)
 
-      if (!userDocSnap.exists()) {
+      if (userData == null) {
         console.error("Usuario no encontrado");
         setLoading(false);
         return;
       }
 
-      const userData = userDocSnap.data();
       const contactIds = userData.contacts || [];
 
       // 2. Obtener datos de los contactos
       const contactPromises = await contactIds.map(async (contactId: string) => {
-        const contactDocRef = doc(db, "users", contactId);
-        const contactDocSnap = await getDoc(contactDocRef);
+        const contactData = await getUserById(contactId);
 
-        if (!contactDocSnap.exists()) {
+        if (contactData == null) {
           console.error(`Contacto con ID ${contactId} no encontrado`);
           return null;
         }
 
-        const contactData = contactDocSnap.data();
         return {
           name: contactData?.name || "Unknown",
           status: contactData?.status || "-",
           image: contactData?.profilePicture || "default.jpg",
+          id: contactData?.id || "Unknown",
         };
       });
 
@@ -54,7 +50,7 @@ const ContactList: React.FC = () => {
       // Esperar todas las promesas
       const contactsData = (await Promise.all(contactPromises)).filter(
         (contact) => contact !== null
-      ) as { name: string; status: string; image: string }[];
+      ) as { name: string; status: string; image: string, id: string }[];
 
       setContacts(contactsData);
     } catch (error) {
@@ -71,18 +67,22 @@ const ContactList: React.FC = () => {
   return (
     <div className="overflow-y-auto flex-1">
       {loading ? (
-        <p className="text-white text-center">Cargando contactos...</p>
+        <Spinner message="Loading contacts..." />
       ) : contacts.length === 0 ? (
-        <p className="text-white text-center">No tienes contactos.</p>
+        <p className="text-white text-center">You haven't contacts.</p>
       ) : (
-        contacts.map((contact, index) => (
-          <ContactCard
-            key={index}
-            name={contact.name}
-            status={contact.status}
-            image={contact.image}
-          />
-        ))
+        <>
+          {contacts.length >= 0 && <SearchBar />}
+          {contacts.map((contact, index) => (
+            <ContactCard
+              key={index}
+              name={contact.name}
+              status={contact.status}
+              image={contact.image}
+              id={contact.id}
+            />
+          ))}
+        </>
       )}
     </div>
   );
