@@ -39,6 +39,7 @@ export default defineConfig({
             },
           },
         ],
+        navigateFallback: "/index.html",
       },
       includeAssets: ["favicon.ico"],
       manifest: {
@@ -61,9 +62,12 @@ export default defineConfig({
           },
         ],
       },
+      injectManifest: {
+        globPatterns: ["**/*.{js,css,html,png,jpg}"], // Incluye index.html
+      },
     }),
   ],
-  base: "./",
+  base: "/",
   root,
   build: {
     outDir: resolve(__dirname, "dist"),

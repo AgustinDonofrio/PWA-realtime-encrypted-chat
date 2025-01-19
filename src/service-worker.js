@@ -9,6 +9,7 @@ self.addEventListener("install", (event) => {
         "/favicon.ico",
         "/index.html",
         "/pages/main.tsx",
+        "/pages/App.tsx",
         "/styles/index.css",
       ]);
     })
