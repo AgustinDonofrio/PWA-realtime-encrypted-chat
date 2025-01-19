@@ -12,6 +12,7 @@ module.exports = {
         "light-gray": "#9EABB8",
         "royal-blue": "#1466B8",
         "disabled-gray": "#9EABB8",
+        "error-red": "#E74C3C",
       },
     },
   },

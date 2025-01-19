@@ -11,14 +11,13 @@ const Login: React.FC = () => {
         <h1 className="text-2xl font-bold text-center text-white mb-6">
           Enter your email
         </h1>
-        <form className="flex flex-col space-y-6">
+        <form className="flex flex-col space-y-10">
           <Input
             type="email"
             id="email"
             placeholder="Email"
             className=" bg-steel rounded-xl"
             inputName="email"
-            onChangeAction={undefined}
           />
           <Input
             type="password"
@@ -26,7 +25,6 @@ const Login: React.FC = () => {
             placeholder="Password"
             className=" bg-steel rounded-xl"
             inputName="password"
-            onChangeAction={undefined}
           />
 
           <div className="flex flex-col space-y-3">
