@@ -11,6 +11,7 @@ module.exports = {
         steel: "#293038",
         "light-gray": "#9EABB8",
         "royal-blue": "#1466B8",
+        "disabled-gray": "#9EABB8",
       },
     },
   },
