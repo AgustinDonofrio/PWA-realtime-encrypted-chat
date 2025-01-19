@@ -1,0 +1,70 @@
+const PASS_MIN_LENGTH = 6;
+const NAME_MIN_LENGTH = 3;
+const EMAIL_REGEX =
+  /^(?=.{1,254}$)(?=.{1,64}@)[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]{1,})+$/;
+
+export const validateEmail = (email: string): boolean | null => {
+  return EMAIL_REGEX.test(email);
+};
+
+export const validatePassword = (
+  password: string,
+  repeatedPassword: string
+): boolean => {
+  if (password.length < PASS_MIN_LENGTH) return false;
+
+  return repeatedPassword === password;
+};
+
+export const validateName = (name: string): boolean => {
+  if (name.trim().length == 0) return false;
+
+  console.log("Estoy entrando?", name);
+
+  if (name.length < NAME_MIN_LENGTH) return false;
+
+  return true;
+};
+
+export const containsOnlySpaces = (value: string): boolean => {
+  return value.trim().length === 0;
+};
+
+export const mapAuthCodeToMessage = (authCode: string): string => {
+  switch (authCode) {
+    case "auth/invalid-email":
+      return "Your email address appears to be malformed.";
+
+    case "auth/invalid-password":
+      return "Your password is wrong.";
+
+    case "auth/user-not-found":
+      return "User doesn't exist.";
+
+    case "auth/uid-already-exists":
+      return "User already exists";
+
+    case "auth/invalid-disabled-field":
+      return "User has been disabled.";
+
+    case "auth/too-many-requests":
+      return "Too many requests. Try again later.";
+
+    case "auth/operation-not-allowed":
+      return "Signing in is not enabled.";
+
+    case "auth/invalid-provider-data":
+      return "Invalid information provided";
+
+    case "auth/invalid-credential":
+      return "Invalid credentials";
+
+    case "auth/email-already-in-use":
+      return "The email has already been used";
+
+    case "auth/invalid-login-credentials":
+      return "Invalid login credentials";
+    default:
+      return "Oops! Something went wrong. Please try again later.";
+  }
+};
