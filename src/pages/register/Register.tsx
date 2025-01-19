@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import Input from "../../components/input/input";
+import Snackbar from "../../components/snackbar/Snackbar";
+import Spinner from "../../components/spinner/Spinner";
 import * as Utils from "../../helpers/utils"
 import { useNavigate, } from "react-router-dom";
 import { createAccount } from "../../controllers/authController"
@@ -17,6 +19,11 @@ interface User {
 }
 
 const Register: React.FC = () => {
+
+    const [isSnackbarOpen, setIsSnackbarOpen] = useState<boolean>(false);
+    const [snackbarMessage, setSnackbarMessage] = useState<string>('');
+    const [snackbarType, setSnackbarType] = useState<'success' | 'error' | 'info'>('info');
+    const [loadingSubmit, setLoadingSubmit] = useState<boolean>(false)
 
     const [userData, setUserData] = useState<User>({
         name: {
@@ -110,38 +117,60 @@ const Register: React.FC = () => {
         }));
     };
 
+    const showSnackbar = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+        setSnackbarMessage(message);
+        setSnackbarType(type);
+        setIsSnackbarOpen(true);
+    };
+
+
+    const handleSnackbarClose = () => {
+        setIsSnackbarOpen(false);
+    };
 
     const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>): Promise<boolean> => {
-        e.preventDefault()
-        try {
-            const registerResponse = await createAccount({ name: userData.name.value, email: userData.email.value, password: userData.password.value })
+        e.preventDefault();
+        if (Object.values(userData).every((field) => field.isValid) || loadingSubmit) {
+            try {
+                setLoadingSubmit(true);
+                const registerResponse = await createAccount({ name: userData.name.value, email: userData.email.value, password: userData.password.value })
 
-            if (!registerResponse.success) {
-                console.log("[x] Register error -> ", registerResponse.msg)
-                return registerResponse.success
+                if (!registerResponse.success) {
+                    console.log("[x] Register error -> ", registerResponse.msg)
+                    showSnackbar(registerResponse.msg, "error")
+                    setLoadingSubmit(false);
+                    return registerResponse.success
+                }
+
+                const userToCreate = {
+                    name: userData.name.value,
+                    email: userData.email.value,
+                    contacts: {},
+                    status: "-",
+                    profilePicture: ""
+                }
+
+                const createUserResponse = await createUser(userToCreate);
+
+                if (!createUserResponse.success) {
+                    console.log("[x] Register error -> ", createUserResponse.msg);
+                    showSnackbar(registerResponse.msg, "error");
+                    setLoadingSubmit(false);
+                    return createUserResponse.success;
+                }
+
+                console.log("[x] Account created successfully :)")
+                setLoadingSubmit(false);
+                return true;
+            } catch (err: any) {
+                console.log("[x] HandleSubmit error -> ", err);
+                showSnackbar("User registration failed. Please try again later.", "error")
+                setLoadingSubmit(false);
+                return false;
             }
-
-            const userToCreate = {
-                name: userData.name.value,
-                email: userData.email.value,
-                contacts: {},
-                status: "-",
-                profilePicture: ""
-            }
-
-            const createUserResponse = await createUser(userToCreate);
-
-            if (!createUserResponse.success) {
-                console.log("[x] Register error -> ", createUserResponse.msg);
-                return createUserResponse.success;
-            }
-
-            console.log("[x] Account created successfully :)")
-            return true;
-        } catch (err) {
-            console.log("[x] HandleSubmit error -> ", err);
-            return false;
         }
+        setLoadingSubmit(false);
+        return false
     }
     return (
         <div className="flex h-full items-center justify-center min-h-screen bg-main-color px-4">
@@ -168,12 +197,12 @@ const Register: React.FC = () => {
                     <div className="flex flex-col space-y-3">
                         <button
                             type="submit"
-                            className={`w-full py-3 text-white ${Object.values(userData).every((field) => field.isValid)
+                            className={`w-full min-h-12 py-3 text-white ${Object.values(userData).every((field) => field.isValid) && !loadingSubmit
                                 ? 'hover:bg-blue-500 bg-royal-blue' : 'bg-disabled-gray'} focus:outline-none rounded-xl`}
-                            disabled={!Object.values(userData).every((field) => field.isValid)}
+                            disabled={!Object.values(userData).every((field) => field.isValid) || loadingSubmit}
                             onClick={handleSubmit}
                         >
-                            Register
+                            {loadingSubmit ? <Spinner size={20}></Spinner> : "Register"}
                         </button>
 
                         <div className="text-center text-gray-400">
@@ -189,6 +218,14 @@ const Register: React.FC = () => {
                 </form>
 
             </div>
+            {isSnackbarOpen && (
+                <Snackbar
+                    message={snackbarMessage}
+                    type={snackbarType}
+                    onClose={handleSnackbarClose}
+                    duration={3000}
+                />
+            )}
         </div>
     );
 };

@@ -5,7 +5,7 @@ import {
 } from "firebase/auth";
 import { collection, getDocs } from "firebase/firestore";
 import { mapAuthCodeToMessage } from "../helpers/utils";
-
+import bcrypt from "bcryptjs";
 interface user {
   name: string;
   email: string;
@@ -24,10 +24,11 @@ export const createAccount = async (userData: user): Promise<authResponse> => {
   };
   try {
     console.log("[x] Creating user...");
+    const hashedPassword = bcrypt.hashSync(userData.password, 10);
     const userCredential = await createUserWithEmailAndPassword(
       auth,
       userData.email,
-      userData.password
+      hashedPassword
     );
     const user = userCredential.user;
     response.success = true;
