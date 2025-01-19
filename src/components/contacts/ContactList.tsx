@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getUserById } from '../../controllers/UserController';
-
+import { getUserById } from '../../controllers/userController';
 import ContactCard from "./ContactCard";
 import SearchBar from './SearchBar';
 import Spinner from '../spinner/Spinner';

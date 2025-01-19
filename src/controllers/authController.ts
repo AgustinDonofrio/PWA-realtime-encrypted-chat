@@ -9,8 +9,6 @@ interface user {
   name: string;
   email: string;
   password: string;
-  trialStartDate?: Date;
-  trialEndDate?: Date;
 }
 
 interface authResponse {
