@@ -11,7 +11,7 @@ const Login: React.FC = () => {
         <h1 className="text-2xl font-bold text-center text-white mb-6">
           Enter your email
         </h1>
-        <form className="flex flex-col space-y-6">
+        <form className="flex flex-col space-y-10">
           <Input
             type="email"
             id="email"
