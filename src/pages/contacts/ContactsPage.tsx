@@ -10,10 +10,7 @@ const ContactsPage: React.FC = () => {
     >
        <Header
         title="WEB APP"
-        showSettingsIcon
-        handleNavigation={(destination) => 
-          destination === "back" ? "/contacts" : "/settings"
-        }
+        rightButton="settings"
       />
       <ContactList />
       <button

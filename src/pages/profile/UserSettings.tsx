@@ -14,10 +14,8 @@ const UserSettings: React.FC = () => {
       {/* Header */}
       <Header 
         title="Profile settings" 
-        showBackButton 
-        handleNavigation={(destination) => 
-          destination === "back" ? "/contacts" : "/settings"
-        }
+        leftButton="back"
+        rightButton="logout"
       />
 
       {/* Content */}

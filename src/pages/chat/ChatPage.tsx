@@ -77,12 +77,9 @@ const ChatPage: React.FC = () => {
       {/* Header */}
       <Header
         title={chatUser.name}
-        showBackButton
-        showProfileImage
+        leftButton="back"
+        rightButton="profile"
         profileImageUrl={chatUser.imageUrl || undefined} // Mostrar imagen del usuario o un ícono por defecto
-        handleNavigation={(destination) =>
-          destination === "back" ? "/contacts" : "settings"
-        }
       />
 
       {/* Lista de mensajes */}
