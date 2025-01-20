@@ -12,7 +12,7 @@ const ContactList: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   // ID del documento del usuario principal
-  const userDocId = "aQjdSFc94VzIdfAGQVLh";
+  const userDocId = "tOdmKCe4wsfasJqqdPHFV3xaF6I2";
 
   const fetchContacts = async () => {
     try {
