@@ -6,6 +6,7 @@ import * as Utils from "../../helpers/utils";
 import { loginAccount, loginWithGoogle, logout } from "../../controllers/authController";
 import { getUserByEmail, createUser } from "../../controllers/userController";
 import Spinner from "../../components/spinner/Spinner";
+import { auth } from "../../firebase/firebase.config";
 interface RequiredValue {
   value: string,
   isValid: boolean
@@ -106,7 +107,6 @@ const Login: React.FC = () => {
           return loginResponse.success
         }
 
-
         console.log("[x] Account logged successfully :)")
         setLoadingSubmit(false);
         return true;
@@ -134,7 +134,7 @@ const Login: React.FC = () => {
 
       const userExists = await getUserByEmail(googleResponse.google.user.email);
 
-      if (!userExists.success) {
+      if (!userExists.success && auth.currentUser?.uid) {
         const userToCreate = {
           name: googleResponse.google.user.displayName,
           email: googleResponse.google.user.email,
@@ -143,7 +143,7 @@ const Login: React.FC = () => {
           status: "-"
         }
 
-        const userResponse = await createUser(userToCreate);
+        const userResponse = await createUser(auth.currentUser?.uid, userToCreate);
 
         if (!userResponse.success) {
           console.log("[x] Google login error -> ", userResponse.msg);
