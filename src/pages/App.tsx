@@ -1,9 +1,10 @@
 import React from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Login from "./login/Login";
-import ChatPage from "./chat/ChatPage";
-import ContactsPage from "./contacts/ContactsPage";
 import Register from "./register/Register";
+import ContactsPage from "./contacts/ContactsPage";
+import ChatPage from "./chat/ChatPage";
+import UserSettings from "./profile/UserSettings";
 import PublicRoute from "../components/routes/PublicRoute";
 import PrivateRoute from "../components/routes/PrivateRoute";
 
@@ -32,6 +33,12 @@ const App: React.FC = () => {
         <Route path="/chat/:id" element={
           <PrivateRoute>
             <ChatPage />
+          </PrivateRoute>
+        } />
+
+        <Route path="/settings" element={
+          <PrivateRoute>
+            <UserSettings />
           </PrivateRoute>
         } />
       </Routes>
