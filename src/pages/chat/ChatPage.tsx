@@ -75,7 +75,6 @@ const ChatPage: React.FC = () => {
           <MessageBubble key={index} text={msg.text} isSender={msg.isSender} />
         ))}
       </div>
-      ¿
       <InputBar onSend={handleSendMessage} />
     </div>
   );
