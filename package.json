@@ -7,6 +7,7 @@
     "build": "vite build",
     "start": "node dist/server/app.js",
     "dev": "vite",
+    "preview": "vite preview",
     "build:css": "postcss src/styles/index.css -o src/theme/tailwind.css",
     "watch:css": "postcss src/styles/index.css -o src/theme/tailwind.css -w"
   },
