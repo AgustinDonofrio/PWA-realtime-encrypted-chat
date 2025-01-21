@@ -7,6 +7,7 @@ import { loginAccount, loginWithGoogle, logout } from "../../controllers/authCon
 import { getUserByEmail, createUser } from "../../controllers/userController";
 import Spinner from "../../components/spinner/Spinner";
 import { auth } from "../../firebase/firebase.config";
+import { CiLock } from "react-icons/ci";
 interface RequiredValue {
   value: string,
   isValid: boolean
@@ -165,57 +166,65 @@ const Login: React.FC = () => {
   }
 
   return (
-    <div className="flex h-full items-center justify-center min-h-screen bg-main-color px-4">
-      <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl">
-        <h1 className="text-2xl font-bold text-center text-white mb-6">
-          Enter your email
-        </h1>
-        <form className="flex flex-col space-y-10">
-          {inputsType.map((input, index) => {
-            return <div className="space-y-1" key={index}>
-              <Input
-                type={input.type}
-                id={input.id}
-                inputName={input.name}
-                placeholder={input.placeHolder}
-                className="bg-steel rounded-xl"
-                onChangeAction={input.ChangeAction}></Input>
-              <span className="absolute text-error-red">{!userData[input.name as keyof User]?.isValid && userData[input.name as keyof User]?.value.length > 0 ? input.type == "password" ? "The password is not valid or not match" : "The value entered is not valid" : ""}</span>
-            </div>
-          }
-          )}
+    <div className="flex flex-col h-full items-center min-h-screen bg-main-color px-4 py-4 justify-between text-main-gray">
 
-          <div className="flex flex-col space-y-3">
-            <button
-              type="button"
-              className="w-full min-h-12 py-3 text-gray-200 bg-steel border-steel rounded-xl hover:bg-gray-600 focus:outline-none"
-              onClick={handleGoogleSubmit}
-            >
-              {loadingSubmit ? <Spinner size={20}></Spinner> : "Login with Google"}
-            </button>
-            <button
-              type="submit"
-              className={`w-full min-h-12 py-3 text-white ${Object.values(userData).every((field) => field.isValid) && !loadingSubmit
-                ? 'hover:bg-blue-500 bg-royal-blue' : 'bg-disabled-gray'} focus:outline-none rounded-xl`}
-              disabled={!Object.values(userData).every((field) => field.isValid) || loadingSubmit}
-              onClick={handleSubmit}
-            >
-              {loadingSubmit ? <Spinner size={20}></Spinner> : "Login"}
-            </button>
 
-            <div className="text-center text-gray-400">
-              <p className="text-sm">
-                New user?{" "}
-                <a href="#" onClick={() => { navigate("/register") }} className="font-medium text-blue-500 hover:underline">
-                  Register
-                </a>
-              </p>
-            </div>
+
+      <form className="flex flex-col space-y-10 w-full">
+        <div className="flex flex-col w-full space-y-10">
+          <div className="flex justify-start space-x-5 items-center">
+            <img className="w-12 h-12" src="/images/logo.png" alt="logo" />
+            <h1 className="text-[22px] font-bold text-center text-white">
+              Log in to BlueCrypt
+            </h1>
           </div>
+          <span>Send private messages to your contacts though BlueCrypt in your browser.</span>
+        </div>
+        {inputsType.map((input, index) => {
+          return <div className="space-y-1" key={index}>
+            <Input
+              type={input.type}
+              id={input.id}
+              inputName={input.name}
+              placeholder={input.placeHolder}
+              className="bg-steel rounded-xl"
+              onChangeAction={input.ChangeAction}></Input>
+            <span className="absolute text-error-red">{!userData[input.name as keyof User]?.isValid && userData[input.name as keyof User]?.value.length > 0 ? input.type == "password" ? "The password is not valid or not match" : "The value entered is not valid" : ""}</span>
+          </div>
+        }
+        )}
 
-        </form>
+        <div className="flex flex-col space-y-3">
+          <button
+            type="button"
+            className="self-center w-11/12 min-h-12 py-3 text-gray-200 bg-steel border-steel rounded-xl hover:bg-gray-600 focus:outline-none"
+            onClick={handleGoogleSubmit}
+          >
+            {loadingSubmit ? <Spinner size={20}></Spinner> : "Login with Google"}
+          </button>
+          <button
+            type="submit"
+            className={`self-center w-11/12 min-h-12 py-3 text-white ${Object.values(userData).every((field) => field.isValid) && !loadingSubmit
+              ? 'hover:bg-blue-500 bg-royal-blue' : 'bg-disabled-gray'} focus:outline-none rounded-xl`}
+            disabled={!Object.values(userData).every((field) => field.isValid) || loadingSubmit}
+            onClick={handleSubmit}
+          >
+            {loadingSubmit ? <Spinner size={20}></Spinner> : "Login"}
+          </button>
 
-      </div>
+          <div className="text-center text-gray-400">
+            <p className="text-sm">
+              New user?{" "}
+              <a href="#" onClick={() => { navigate("/register") }} className="font-medium text-blue-500 hover:underline">
+                Register
+              </a>
+            </p>
+          </div>
+        </div>
+
+      </form>
+
+      <div className="w-full text-center flex justify-center items-center space-x-1 text-sm "><CiLock></CiLock> <span className="justify-center text-sm"> Your personal messages are end-to-end encrypted.</span></div>
       {isSnackbarOpen && (
         <Snackbar
           message={snackbarMessage}
