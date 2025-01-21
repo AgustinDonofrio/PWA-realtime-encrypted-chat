@@ -2,6 +2,7 @@ import { db } from "../firebase/firebase.config";
 import {
   doc,
   getDoc,
+  setDoc,
   addDoc,
   collection,
   query,
@@ -16,7 +17,7 @@ interface User {
   contacts: {};
   profilePicture: string | "";
   status: string | "";
-  id?: string;
+  uid?: string;
 }
 
 interface UserResponse {
@@ -78,13 +79,18 @@ export const getUserByEmail = async (
   }
 };
 
-export const createUser = async (userData: User): Promise<UserResponse> => {
+export const createUser = async (
+  uid: string,
+  userData: User
+): Promise<UserResponse> => {
   const userResponse = {
     success: false,
     msg: "",
   };
   try {
-    const docRef = await addDoc(collection(db, "users"), userData);
+    const userRef = doc(collection(db, "users"), uid); // Crea un documento con el UID personalizado
+    await setDoc(userRef, userData); // Guarda los datos en el documento
+
     userResponse.success = true;
     userResponse.msg = "Usuario creado con éxito";
   } catch (err: any) {

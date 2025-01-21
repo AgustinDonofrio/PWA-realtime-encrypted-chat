@@ -6,6 +6,7 @@ import * as Utils from "../../helpers/utils"
 import { useNavigate, } from "react-router-dom";
 import { createAccount } from "../../controllers/authController"
 import { createUser } from "../../controllers/userController"
+import { auth } from "../../firebase/firebase.config"
 
 interface RequiredValue {
     value: string,
@@ -150,7 +151,13 @@ const Register: React.FC = () => {
                     profilePicture: ""
                 }
 
-                const createUserResponse = await createUser(userToCreate);
+                if (!auth.currentUser?.uid) {
+                    showSnackbar("User registration failed. Please try again later.", "error")
+                    setLoadingSubmit(false);
+                    return false
+                }
+
+                const createUserResponse = await createUser(auth.currentUser?.uid, userToCreate);
 
                 if (!createUserResponse.success) {
                     console.log("[x] Register error -> ", createUserResponse.msg);
