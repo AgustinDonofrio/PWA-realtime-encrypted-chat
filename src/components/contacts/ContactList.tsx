@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { getUserById } from '../../controllers/userController';
+import React, { useState, useEffect } from "react";
+import { getUserById } from "../../controllers/userController";
 import ContactCard from "./ContactCard";
-import SearchBar from './SearchBar';
-import Spinner from '../spinner/Spinner';
+import SearchBar from "./SearchBar";
+import Spinner from "../spinner/Spinner";
 
 
 const ContactList: React.FC = () => {
   const [contacts, setContacts] = useState<
-    { name: string; status: string; image: string, id: string }[]
+    { name: string; status: string; image: string; id: string }[]
   >([]);
   const [loading, setLoading] = useState(true);
 
@@ -19,7 +19,7 @@ const ContactList: React.FC = () => {
       setLoading(true);
 
       // 1. Obtener el documento del usuario principal
-      const userData = await getUserById(userDocId)
+      const userData = await getUserById(userDocId);
 
       if (userData == null) {
         console.error("Usuario no encontrado");
@@ -41,7 +41,7 @@ const ContactList: React.FC = () => {
         return {
           name: contactData?.name || "Unknown",
           status: contactData?.status || "-",
-          image: contactData?.profilePicture || "default.jpg",
+          image: contactData?.profilePicture || "",
           id: contactData?.id || "Unknown",
         };
       });
@@ -50,7 +50,7 @@ const ContactList: React.FC = () => {
       // Esperar todas las promesas
       const contactsData = (await Promise.all(contactPromises)).filter(
         (contact) => contact !== null
-      ) as { name: string; status: string; image: string, id: string }[];
+      ) as { name: string; status: string; image: string; id: string }[];
 
       setContacts(contactsData);
     } catch (error) {
@@ -69,7 +69,14 @@ const ContactList: React.FC = () => {
       {loading ? (
         <Spinner message="Loading contacts..." />
       ) : contacts.length === 0 ? (
-        <p className="text-white text-center">You haven't contacts.</p>
+        <div className="flex flex-col items-center justify-center text-white text-center">
+          <img
+            src="/public/images/no-contacts.png"
+            alt="No contacts"
+            className="w-52 h-44 mb-4 mt-4"
+          />
+          <p>You have not contacts. Let's add some!</p>
+        </div>
       ) : (
         <>
           {contacts.length >= 0 && <SearchBar />}
