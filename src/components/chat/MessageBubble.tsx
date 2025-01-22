@@ -1,23 +1,29 @@
 import React from "react";
+import { formatTime } from "../../helpers/utils";
 
 interface MessageBubbleProps {
   text?: string;
   imageUrl?: string;
   isSender: boolean;
+  timestamp: Date;
 }
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ text, imageUrl, isSender }) => {
+const MessageBubble: React.FC<MessageBubbleProps> = ({ text, imageUrl, isSender, timestamp }) => {
   return (
     <div
-      className={`${isSender ? "bg-royal-blue text-white ml-auto" : "bg-steel text-white mr-auto"} 
-                  px-4 py-2 rounded-lg shadow-md max-w-[78%] w-fit break-words`}
-      style={{
-        wordWrap: "break-word",
-        overflowWrap: "break-word",
-        whiteSpace: "pre-wrap", // Conserva saltos de línea
-      }}
+      className={`relative flex flex-col min-w-[3.5rem] max-w-[78%] px-3 py-2 rounded-lg shadow-md break-words w-fit mb-2 ${
+        isSender
+          ? "ml-auto bg-royal-blue text-white"
+          : "mr-auto bg-steel text-white"
+      }`}
     >
+      {/* Mostrar contenido (texto o imagen) */}
       {imageUrl ? <img className="max-w-md max-h-md" src={imageUrl} alt="image" /> : text}
+
+      {/* Mostrar hora en la esquina inferior derecha */}
+      <div className="flex justify-end mt-1">
+        <span className="text-[11px] text-gray-400">{formatTime(timestamp)}</span>
+      </div>
     </div>
   );
 };

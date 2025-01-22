@@ -6,10 +6,17 @@ import InputBar from "../../components/chat/InputBar";
 import { getUserById } from "../../controllers/userController";
 import { subscribeToMessages, sendMessage } from "../../controllers/messageController";
 import LoadingPage from "../loading/LoadingPage";
+import { formatDate } from "../../helpers/utils";
+
+const DateSeparator: React.FC<{ date: string }> = ({ date }) => (
+  <div className="text-gray-400 text-sm text-center my-2">
+    {date}
+  </div>
+);
 
 const ChatPage: React.FC = () => {
   const { userId } = useParams();
-  const [messages, setMessages] = useState<{ text?: string; imageUrl?: string; isSender: boolean }[]>([]);
+  const [messages, setMessages] = useState<{ text?: string; imageUrl?: string; isSender: boolean, timestamp:Date }[]>([]);
   const [chatUser, setChatUser] = useState<{ name: string; imageUrl: string }>({
     name: "",
     imageUrl: "",
@@ -76,9 +83,19 @@ const ChatPage: React.FC = () => {
       await sendMessage(userId, message, imageUrl);
     }
 
-    setMessages([...messages, { text: message, imageUrl, isSender: true }]);
+    setMessages([...messages, { text: message, imageUrl, isSender: true, timestamp: new Date() }]);
     scrollToBottom(); // Hacer scroll al final después de enviar un mensaje
   };
+
+  // Función para agrupar mensajes por fecha
+  const groupedMessages = messages.reduce((groups: Record<string, any[]>, msg) => {
+    const date = formatDate(msg.timestamp);
+    if (!groups[date]) {
+      groups[date] = [];
+    }
+    groups[date].push(msg);
+    return groups;
+  }, {});
 
   if (isLoading) {
     return <LoadingPage />;
@@ -95,14 +112,21 @@ const ChatPage: React.FC = () => {
       />
 
       {/* Lista de mensajes */}
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800">
-        {messages.map((msg, index) => (
-          <MessageBubble 
-            key={index} 
-            text={msg.text} 
-            imageUrl={msg.imageUrl}
-            isSender={msg.isSender} 
-          />
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800">
+        {Object.entries(groupedMessages).map(([date, messages]) => (
+          <div key={date}>
+            {/* Fecha como separador */}
+            <DateSeparator date={date} />
+            {messages.map((msg, index) => (
+              <MessageBubble 
+                key={index} 
+                text={msg.text} 
+                imageUrl={msg.imageUrl}
+                isSender={msg.isSender} 
+                timestamp={msg.timestamp}
+              />
+            ))}
+          </div>
         ))}
         <div ref={messagesEndRef} /> {/* Para asegurar el scroll al final */}
       </div>

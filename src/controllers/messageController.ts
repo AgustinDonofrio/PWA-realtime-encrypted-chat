@@ -101,6 +101,7 @@ export const subscribeToMessages = (
           text: data.text || "",
           imageUrl: data.imageUrl || null,
           isSender: data.from === auth.currentUser?.uid, // Verificar si el mensaje fue enviado por el usuario actual
+          timestamp: data.creationDate?.toDate() || new Date(), // Convertir Timestamp a Date
         };
       });
 
