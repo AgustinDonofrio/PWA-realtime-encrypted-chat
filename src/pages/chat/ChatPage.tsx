@@ -5,6 +5,7 @@ import MessageBubble from "../../components/chat/MessageBubble";
 import InputBar from "../../components/chat/InputBar";
 import { getUserById } from "../../controllers/userController";
 import { subscribeToMessages, sendMessage } from "../../controllers/messageController";
+import LoadingPage from "../loading/LoadingPage";
 
 const ChatPage: React.FC = () => {
   const { userId } = useParams();
@@ -15,6 +16,7 @@ const ChatPage: React.FC = () => {
   });
   const messagesEndRef = useRef<HTMLDivElement>(null); //Para scroll automático
   const [hasLoaded, setHasLoaded] = useState(false); // Para controlar animación inicial
+  const [isLoading, setIsLoading] = useState(true);
 
   // Obtener los datos del usuario con el que se está chateando
   useEffect(() => {
@@ -31,6 +33,8 @@ const ChatPage: React.FC = () => {
         }
       } catch (error) {
         console.error("Error fetching chat user:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -43,7 +47,6 @@ const ChatPage: React.FC = () => {
 
     const unsubscribe = subscribeToMessages(userId, (newMessages) => {
       setMessages(newMessages); // Actualizar los mensajes
-      //scrollToBottom(); // Desplazarce automáticamente al final
     });
 
     return () => {
@@ -77,8 +80,12 @@ const ChatPage: React.FC = () => {
     scrollToBottom(); // Hacer scroll al final después de enviar un mensaje
   };
 
+  if (isLoading) {
+    return <LoadingPage />;
+  }
+
   return (
-    <div className="h-screen w-full mx-auto bg-main-color text-white flex flex-col relative shadow-lg">
+    <div className="h-screen w-full mx-auto bg-main-color flex flex-col relative shadow-lg">
       {/* Header */}
       <Header
         title={chatUser.name}
