@@ -167,10 +167,7 @@ const Login: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full items-center min-h-screen bg-main-color px-4 py-4 justify-between text-main-gray">
-
-
-
-      <form className="flex flex-col space-y-10 w-full">
+      <form className="flex flex-col space-y-10 max-w-7xl">
         <div className="flex flex-col w-full space-y-10">
           <div className="flex justify-start space-x-5 items-center">
             <img className="w-12 h-12" src="/images/logo.png" alt="logo" />
