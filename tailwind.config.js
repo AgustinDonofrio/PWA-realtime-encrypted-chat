@@ -13,6 +13,7 @@ module.exports = {
         "royal-blue": "#1466B8",
         "disabled-gray": "#9EABB8",
         "error-red": "#E74C3C",
+        "main-gray": "#C6C6C6",
       },
     },
   },
