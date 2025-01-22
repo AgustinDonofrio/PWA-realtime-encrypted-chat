@@ -703,6 +703,9 @@ video {
 .max-w-\[1300px\] {
   max-width: 1300px;
 }
+.max-w-md {
+  max-width: 28rem;
+}
 .flex-1 {
   flex: 1 1 0%;
 }

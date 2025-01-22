@@ -4,11 +4,10 @@ import { uploadImage } from "../../controllers/messageController";
 import { uploadToCloudinary } from "../../controllers/cloudinaryController"
 
 interface InputBarProps {
-  onSend: (message: string) => void;
-  onSendImage?: (imageUrl: string) => void;
+  onSend: (message: string, imageUrl?: string) => void;
 }
 
-const InputBar: React.FC<InputBarProps> = ({ onSend, onSendImage }) => {
+const InputBar: React.FC<InputBarProps> = ({ onSend }) => {
   const [message, setMessage] = useState("");
   const [uploadProgress, setUploadProgress] = useState<number | null>(null); // Estado para el progreso de subida
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -53,6 +52,10 @@ const InputBar: React.FC<InputBarProps> = ({ onSend, onSendImage }) => {
     if (file) {
       try {
         const result = await uploadToCloudinary(file);
+
+        if (result) {
+          onSend("", result)
+        }
         console.log(result);
         // setUploadProgress(0); // Inicializar progreso
         // const imageUrl = await uploadImage(file, "images", (progress) => {
