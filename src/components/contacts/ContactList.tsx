@@ -71,7 +71,7 @@ const ContactList: React.FC = () => {
       ) : contacts.length === 0 ? (
         <div className="flex flex-col items-center justify-center text-white text-center">
           <img
-            src="/public/images/no-contacts.png"
+            src="/images/no-contacts.png"
             alt="No contacts"
             className="w-52 h-44 mb-4 mt-4"
           />

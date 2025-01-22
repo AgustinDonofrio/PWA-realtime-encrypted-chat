@@ -1,12 +1,15 @@
-import React, { useRef } from "react";
+import React, { useState, useRef } from "react";
 import { FiSend, FiImage } from "react-icons/fi";
+import { uploadImage } from "../../controllers/messageController";
 
 interface InputBarProps {
   onSend: (message: string) => void;
+  onSendImage?: (imageUrl: string) => void;
 }
 
-const InputBar: React.FC<InputBarProps> = ({ onSend }) => {
-  const [message, setMessage] = React.useState("");
+const InputBar: React.FC<InputBarProps> = ({ onSend, onSendImage }) => {
+  const [message, setMessage] = useState("");
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null); // Estado para el progreso de subida
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const MAX_LINES = 6; // Número máximo de líneas permitidas (en mobile)
@@ -44,11 +47,40 @@ const InputBar: React.FC<InputBarProps> = ({ onSend }) => {
     }
   };
 
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      try {
+        setUploadProgress(0); // Inicializar progreso
+        const imageUrl = await uploadImage(file, "images", (progress) => {
+          setUploadProgress(progress); // Actualizar progreso
+        });
+        if (onSendImage) {
+          onSendImage(imageUrl); // Llamar al callback para enviar la imagen
+        }
+      } catch (error) {
+        console.error("Error uploading image:", error);
+      } finally {
+        setUploadProgress(null); // Restablecer progreso al finalizar
+      }
+    }
+  };
+
   return (
-    <div className="flex items-center gap-2 px-4 py-3 border-t border-gray-700 bg-main-color">
-      <button className="text-white text-2xl">
+    <div className="flex items-center gap-2 px-4 py-3 border-t border-gray-700 bg-main-color relative">
+      {/* Botón de subir imagen */}
+      <label htmlFor="image-upload" className="text-white text-2xl cursor-pointer">
         <FiImage />
-      </button>
+      </label>
+      <input
+        id="image-upload"
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleImageUpload}
+      />
+
+      {/* Área de texto para mensajes */}
       <textarea
         ref={textareaRef}
         value={message}
@@ -62,6 +94,8 @@ const InputBar: React.FC<InputBarProps> = ({ onSend }) => {
           maxHeight: `${MAX_LINES * 1.5}rem`, // Altura máxima basada en el número de líneas
         }}
       />
+
+      {/* Botón para enviar mensaje */}
       <button
         className={`text-2xl ${
           message.trim() ? "text-white" : "text-light-gray"
@@ -70,6 +104,16 @@ const InputBar: React.FC<InputBarProps> = ({ onSend }) => {
       >
         <FiSend />
       </button>
+
+      {/* Barra de progreso de subida */}
+      {uploadProgress !== null && (
+        <div className="absolute bottom-[-12px] left-0 w-full bg-main-color h-2">
+          <div
+            className="bg-royal-blue h-2"
+            style={{ width: `${uploadProgress}%` }}
+          ></div>
+        </div>
+      )}
     </div>
   );
 };
