@@ -70,6 +70,7 @@ export default defineConfig({
   base: "/",
   root,
   build: {
+    sourcemap: false,
     outDir: resolve(__dirname, "dist"),
     rollupOptions: {
       input: resolve(root, "index.html"),

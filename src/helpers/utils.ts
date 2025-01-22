@@ -1,3 +1,5 @@
+import CryptoJS from "crypto-js";
+
 const PASS_MIN_LENGTH = 6;
 const NAME_MIN_LENGTH = 3;
 const EMAIL_REGEX =
@@ -64,5 +66,25 @@ export const mapAuthCodeToMessage = (authCode: string): string => {
       return "Invalid login credentials";
     default:
       return "Oops! Something went wrong. Please try again later.";
+  }
+};
+
+// Función para cifrar un mensaje
+export const encryptMessage = (message: string): string => {
+  const SECRET_KEY = import.meta.env.VITE_CRYPTO_SECRET_KET;
+
+  const ciphertext = CryptoJS.AES.encrypt(message, SECRET_KEY).toString();
+  return ciphertext;
+};
+
+export const decryptMessage = (ciphertext: string): string => {
+  try {
+    const SECRET_KEY = import.meta.env.VITE_CRYPTO_SECRET_KET;
+    const bytes = CryptoJS.AES.decrypt(ciphertext, SECRET_KEY);
+    const originalMessage = bytes.toString(CryptoJS.enc.Utf8);
+
+    return originalMessage;
+  } catch (err) {
+    return "Error getting message, try again";
   }
 };
