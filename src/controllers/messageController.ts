@@ -15,17 +15,27 @@ import {
   uploadBytesResumable,
   getDownloadURL,
 } from "firebase/storage";
-import { mapAuthCodeToMessage } from "../helpers/utils";
+import {
+  mapAuthCodeToMessage,
+  encryptMessage,
+  decryptMessage,
+} from "../helpers/utils";
 
 const storage = getStorage();
 
-export const uploadImage = async (file: File, folder: string, onProgress?: (progress: number) => void) => {
+export const uploadImage = async (
+  file: File,
+  folder: string,
+  onProgress?: (progress: number) => void
+) => {
   try {
     if (!auth.currentUser?.uid) {
       throw new Error("User is not authenticated");
     }
 
-    const filePath = `${folder}/${auth.currentUser.uid}-${Date.now()}-${file.name}`;
+    const filePath = `${folder}/${auth.currentUser.uid}-${Date.now()}-${
+      file.name
+    }`;
     const storageRef = ref(storage, filePath);
 
     // Subir la imagen con un controlador de progreso
@@ -80,6 +90,13 @@ export const subscribeToMessages = (
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const newMessages = snapshot.docs.map((doc) => {
         const data = doc.data();
+        if (data.text) {
+          data.text = decryptMessage(data.text);
+        }
+
+        if (data.imageUrl) {
+          data.imageUrl = decryptMessage(data.imageUrl);
+        }
         return {
           text: data.text || "",
           imageUrl: data.imageUrl || null,
@@ -100,10 +117,22 @@ export const subscribeToMessages = (
   }
 };
 
-export const sendMessage = async (toUser: string, message?: string, imageUrl?: string) => {
+export const sendMessage = async (
+  toUser: string,
+  message?: string,
+  imageUrl?: string
+) => {
   try {
     if (!auth.currentUser?.uid) {
       return { success: false, message: "Message cannot be sent" };
+    }
+
+    if (message) {
+      message = encryptMessage(message);
+    }
+
+    if (imageUrl) {
+      imageUrl = encryptMessage(imageUrl);
     }
 
     const messagesRef = collection(db, "messages");
