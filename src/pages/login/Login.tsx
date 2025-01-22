@@ -127,7 +127,7 @@ const Login: React.FC = () => {
 
       const googleResponse = await loginWithGoogle();
 
-      if (!googleResponse.success) {
+      if (!googleResponse.success || !googleResponse.google.user.email) {
         console.log("[x] Google login error -> ", googleResponse.msg)
         showSnackbar(googleResponse.msg, "error")
         setLoadingSubmit(false);

@@ -16,7 +16,7 @@ const DateSeparator: React.FC<{ date: string }> = ({ date }) => (
 
 const ChatPage: React.FC = () => {
   const { userId } = useParams();
-  const [messages, setMessages] = useState<{ text?: string; imageUrl?: string; isSender: boolean, timestamp:Date }[]>([]);
+  const [messages, setMessages] = useState<{ text?: string; imageUrl?: string; isSender: boolean, timestamp: Date }[]>([]);
   const [chatUser, setChatUser] = useState<{ name: string; imageUrl: string }>({
     name: "",
     imageUrl: "",
@@ -68,8 +68,9 @@ const ChatPage: React.FC = () => {
     if (!hasLoaded) {
       scrollToBottom();
       setHasLoaded(true);
+
     } else {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth"});
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]); // Este hook se dispara cuando los mensajes cambia
 
@@ -112,17 +113,17 @@ const ChatPage: React.FC = () => {
       />
 
       {/* Lista de mensajes */}
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800">
+      <div className="flex-1 h-full overflow-y-auto px-4 py-3 space-y-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800">
         {Object.entries(groupedMessages).map(([date, messages]) => (
           <div key={date}>
             {/* Fecha como separador */}
             <DateSeparator date={date} />
             {messages.map((msg, index) => (
-              <MessageBubble 
-                key={index} 
-                text={msg.text} 
+              <MessageBubble
+                key={index}
+                text={msg.text}
                 imageUrl={msg.imageUrl}
-                isSender={msg.isSender} 
+                isSender={msg.isSender}
                 timestamp={msg.timestamp}
               />
             ))}
@@ -131,7 +132,7 @@ const ChatPage: React.FC = () => {
         <div ref={messagesEndRef} /> {/* Para asegurar el scroll al final */}
       </div>
 
-       {/* Barra del input */}
+      {/* Barra del input */}
       <InputBar onSend={handleSendMessage} />
     </div>
   );
