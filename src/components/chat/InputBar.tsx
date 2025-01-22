@@ -1,13 +1,13 @@
 import React, { useState, useRef } from "react";
 import { FiSend, FiImage } from "react-icons/fi";
 import { uploadImage } from "../../controllers/messageController";
+import { uploadToCloudinary } from "../../controllers/cloudinaryController"
 
 interface InputBarProps {
-  onSend: (message: string) => void;
-  onSendImage?: (imageUrl: string) => void;
+  onSend: (message: string, imageUrl?: string) => void;
 }
 
-const InputBar: React.FC<InputBarProps> = ({ onSend, onSendImage }) => {
+const InputBar: React.FC<InputBarProps> = ({ onSend }) => {
   const [message, setMessage] = useState("");
   const [uploadProgress, setUploadProgress] = useState<number | null>(null); // Estado para el progreso de subida
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -51,13 +51,19 @@ const InputBar: React.FC<InputBarProps> = ({ onSend, onSendImage }) => {
     const file = event.target.files?.[0];
     if (file) {
       try {
-        setUploadProgress(0); // Inicializar progreso
-        const imageUrl = await uploadImage(file, "images", (progress) => {
-          setUploadProgress(progress); // Actualizar progreso
-        });
-        if (onSendImage) {
-          onSendImage(imageUrl); // Llamar al callback para enviar la imagen
+        const result = await uploadToCloudinary(file);
+
+        if (result) {
+          onSend("", result)
         }
+        console.log(result);
+        // setUploadProgress(0); // Inicializar progreso
+        // const imageUrl = await uploadImage(file, "images", (progress) => {
+        //   setUploadProgress(progress); // Actualizar progreso
+        // });
+        // if (onSendImage) {
+        //   onSendImage(imageUrl); // Llamar al callback para enviar la imagen
+        // }
       } catch (error) {
         console.error("Error uploading image:", error);
       } finally {
@@ -97,9 +103,8 @@ const InputBar: React.FC<InputBarProps> = ({ onSend, onSendImage }) => {
 
       {/* Botón para enviar mensaje */}
       <button
-        className={`text-2xl ${
-          message.trim() ? "text-white" : "text-light-gray"
-        }`}
+        className={`text-2xl ${message.trim() ? "text-white" : "text-light-gray"
+          }`}
         onClick={handleSend}
       >
         <FiSend />

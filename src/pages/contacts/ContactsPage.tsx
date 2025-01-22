@@ -26,9 +26,9 @@ const ContactsPage: React.FC = () => {
 
   return (
     <div className="h-screen w-full mx-auto bg-main-color flex flex-col relative shadow-lg">
-      <Header 
-        title="WEB APP" 
-        rightButton="settings" 
+      <Header
+        title="BlueCrypt"
+        rightButton="settings"
       />
       <ContactList />
       <button
