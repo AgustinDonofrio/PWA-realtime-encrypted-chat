@@ -3,14 +3,14 @@ import {
   doc,
   getDoc,
   setDoc,
-  addDoc,
+  updateDoc,
   collection,
   query,
   getDocs,
   where,
-  updateDoc,
 } from "firebase/firestore";
 import { mapAuthCodeToMessage } from "../helpers/utils";
+import { uploadToCloudinary } from "./cloudinaryController";
 
 interface User {
   name: string;
@@ -156,4 +156,25 @@ export const addContactToUser = async (
   }
 
   return response;
+};
+
+export const updateProfilePicture = async (file: File, userId: string) => {
+  try {
+    // Subir imagen a Cloudinary
+    const imageUrl = await uploadToCloudinary(file);
+    if (!imageUrl) {
+      throw new Error("Failed to upload image to Cloudinary");
+    }
+
+    // Actualizar el campo `profilePicture` en Firestore
+    const userRef = doc(db, "user", userId);
+    await updateDoc(userRef, {
+      profilePicture: imageUrl,
+    });
+
+    return { success: true, imageUrl };
+  } catch (error) {
+    console.error("Error updating profile picture:", error);
+    throw error;
+  }
 };
