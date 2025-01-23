@@ -5,7 +5,6 @@ import SearchBar from "./SearchBar";
 import Spinner from "../spinner/Spinner";
 
 interface Contact {
-
   name: string | ""; status: string | ""; profilePicture: string | ""; id: string;
 }
 
