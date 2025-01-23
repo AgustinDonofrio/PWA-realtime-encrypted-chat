@@ -169,3 +169,11 @@ export const updateProfilePicture = async (file: File, userId: string) => {
     throw error;
   }
 };
+
+export const getLoggedEmail = (): string | null | undefined => {
+  try {
+    return auth.currentUser?.email;
+  } catch (err: any) {
+    return null;
+  }
+};
