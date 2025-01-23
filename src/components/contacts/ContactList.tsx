@@ -4,71 +4,20 @@ import ContactCard from "./ContactCard";
 import SearchBar from "./SearchBar";
 import Spinner from "../spinner/Spinner";
 
+interface Contact {
 
-const ContactList: React.FC = () => {
-  const [contacts, setContacts] = useState<
-    { name: string; status: string; image: string; id: string }[]
-  >([]);
-  const [loading, setLoading] = useState(true);
+  name: string | ""; status: string | ""; profilePicture: string | ""; id: string;
+}
 
-  // ID del documento del usuario principal
-  const userDocId = "tOdmKCe4wsfasJqqdPHFV3xaF6I2";
+interface ContactListProps {
+  contacts: Contact[];
+}
 
-  const fetchContacts = async () => {
-    try {
-      setLoading(true);
-
-      // 1. Obtener el documento del usuario principal
-      const userData = await getUserById(userDocId);
-
-      if (userData == null) {
-        console.error("Usuario no encontrado");
-        setLoading(false);
-        return;
-      }
-
-      const contactIds = userData.contacts || [];
-
-      // 2. Obtener datos de los contactos
-      const contactPromises = await contactIds.map(async (contactId: string) => {
-        const contactData = await getUserById(contactId);
-
-        if (contactData == null) {
-          console.error(`Contacto con ID ${contactId} no encontrado`);
-          return null;
-        }
-
-        return {
-          name: contactData?.name || "Unknown",
-          status: contactData?.status || "-",
-          image: contactData?.profilePicture || "",
-          id: contactData?.id || "Unknown",
-        };
-      });
-
-      console.log("[X] Contacts ->", contactPromises);
-      // Esperar todas las promesas
-      const contactsData = (await Promise.all(contactPromises)).filter(
-        (contact) => contact !== null
-      ) as { name: string; status: string; image: string; id: string }[];
-
-      setContacts(contactsData);
-    } catch (error) {
-      console.error("Error obteniendo contactos:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchContacts();
-  }, []);
+const ContactList: React.FC<ContactListProps> = ({ contacts }) => {
 
   return (
     <div className="overflow-y-auto flex-1">
-      {loading ? (
-        <Spinner message="Loading contacts..." />
-      ) : contacts.length === 0 ? (
+      {contacts?.length === 0 ? (
         <div className="flex flex-col items-center justify-center text-white text-center">
           <img
             src="/images/no-contacts.png"
@@ -85,7 +34,7 @@ const ContactList: React.FC = () => {
               key={index}
               name={contact.name}
               status={contact.status}
-              image={contact.image}
+              image={contact.profilePicture}
               id={contact.id}
             />
           ))}
