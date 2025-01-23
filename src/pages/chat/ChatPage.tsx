@@ -66,12 +66,12 @@ const ChatPage: React.FC = () => {
   // Hacer scroll cada vez que cambian los mensajes
   useLayoutEffect(() => {
     if (!hasLoaded) {
-      scrollToBottom();
       setHasLoaded(true);
-
+      scrollToBottom()
     } else {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
+
   }, [messages]); // Este hook se dispara cuando los mensajes cambia
 
   // Scroll automático al final
@@ -95,6 +95,7 @@ const ChatPage: React.FC = () => {
       groups[date] = [];
     }
     groups[date].push(msg);
+
     return groups;
   }, {});
 
