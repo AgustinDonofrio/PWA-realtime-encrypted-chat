@@ -1,4 +1,4 @@
-import { db } from "../firebase/firebase.config";
+import { db, auth } from "../firebase/firebase.config";
 import {
   doc,
   getDoc,
@@ -8,6 +8,7 @@ import {
   query,
   getDocs,
   where,
+  updateDoc,
 } from "firebase/firestore";
 import { mapAuthCodeToMessage } from "../helpers/utils";
 
@@ -100,4 +101,59 @@ export const createUser = async (
   }
 
   return userResponse;
+};
+
+export const addContactToUser = async (
+  userEmail: string // Email del usuario al que se añadirá el contacto
+): Promise<UserResponse> => {
+  const response = {
+    success: false,
+    msg: "",
+  };
+  try {
+    const userId = auth.currentUser?.uid;
+    if (!userId) {
+      response.msg = "User is not authenticated";
+      return response;
+    }
+    // Buscar al usuario a agregar por su email
+    const userResponse = await getUserByEmail(userEmail);
+
+    if (!userResponse.success) {
+      response.msg = "The user searched doesn't exists";
+      console.error(response.msg);
+      return response;
+    }
+
+    const contactData = userResponse.data as User;
+
+    if (!contactData) {
+      response.msg = "The user searched doesn't exists";
+      return response;
+    }
+
+    if (!("id" in contactData)) {
+      response.msg = "The user searched doesn't exists";
+      return response;
+    }
+
+    const userRef = doc(db, "users", userId);
+    await updateDoc(userRef, {
+      [`contacts.${contactData?.id}`]: {
+        name: contactData?.name,
+        email: contactData?.email,
+        status: contactData?.status || "",
+        profilePicture: contactData?.profilePicture || "",
+      },
+    });
+
+    response.success = true;
+    response.msg = "Contact added";
+  } catch (error: any) {
+    console.error("Error to add contact: ", error);
+    response.success = false;
+    response.msg = mapAuthCodeToMessage(error.code);
+  }
+
+  return response;
 };
