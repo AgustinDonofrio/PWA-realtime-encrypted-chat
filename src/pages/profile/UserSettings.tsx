@@ -88,25 +88,25 @@ const UserSettings: React.FC = () => {
   };
   // Función mejorada para dividir el texto sin cortar palabras
   const formatTextWithLineBreaks = (text: string, maxChars: number) => {
-  const words = text.split(" ");
-  let line = "";
-  const lines: string[] = [];
+    const words = text.split(" ");
+    let line = "";
+    const lines: string[] = [];
 
-  for (const word of words) {
-    if ((line + word).length > maxChars) {
-      lines.push(line.trim());
-      line = word + " ";
-    } else {
-      line += word + " ";
+    for (const word of words) {
+      if ((line + word).length > maxChars) {
+        lines.push(line.trim());
+        line = word + " ";
+      } else {
+        line += word + " ";
+      }
     }
-  }
 
-  if (line.trim()) {
-    lines.push(line.trim());
-  }
+    if (line.trim()) {
+      lines.push(line.trim());
+    }
 
-  return lines.join("\n");
-};
+    return lines.join("\n");
+  };
 
 
   // Mostrar pantalla de carga mientras se está cargando la información
@@ -117,12 +117,12 @@ const UserSettings: React.FC = () => {
   return (
     <div className="h-screen w-full mx-auto bg-main-color flex flex-col relative shadow-lg">
       {/* Header */}
-      <Header 
-        title="Profile settings" 
+      <Header
+        title="Profile settings"
         leftButton="back"
         rightButton="logout"
       />
-  
+
       {/* Foto de perfil */}
       <div className="flex flex-col items-center mt-10">
         <div className="relative group w-28 h-28">
@@ -145,7 +145,7 @@ const UserSettings: React.FC = () => {
             </label>
           </div>
         </div>
-  
+
         {/* Información del Usuario */}
         <div className="mt-10 px-6">
           {/* Nombre del usuario */}
@@ -211,7 +211,7 @@ const UserSettings: React.FC = () => {
       </div>
     </div>
   );
-  
+
 };
 
 export default UserSettings;
