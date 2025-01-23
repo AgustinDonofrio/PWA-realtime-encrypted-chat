@@ -11,6 +11,7 @@ import {
 } from "firebase/firestore";
 import { mapAuthCodeToMessage } from "../helpers/utils";
 import { uploadToCloudinary } from "./cloudinaryController";
+import { profile } from "console";
 
 interface User {
   name: string;
@@ -104,7 +105,7 @@ export const createUser = async (
 };
 
 export const addContactToUser = async (
-  userEmail: string // Email del usuario al que se añadirá el contacto
+  userToAdd: User // Usuario a agregar
 ): Promise<UserResponse> => {
   const response = {
     success: false,
@@ -116,34 +117,24 @@ export const addContactToUser = async (
       response.msg = "User is not authenticated";
       return response;
     }
-    // Buscar al usuario a agregar por su email
-    const userResponse = await getUserByEmail(userEmail);
 
-    if (!userResponse.success) {
-      response.msg = "The user searched doesn't exists";
-      console.error(response.msg);
+    if (!userToAdd) {
+      response.msg = "The user to add is empty";
       return response;
     }
 
-    const contactData = userResponse.data as User;
-
-    if (!contactData) {
-      response.msg = "The user searched doesn't exists";
-      return response;
-    }
-
-    if (!("id" in contactData)) {
-      response.msg = "The user searched doesn't exists";
+    if (!("uid" in userToAdd)) {
+      response.msg = "The user to add is invalid";
       return response;
     }
 
     const userRef = doc(db, "users", userId);
     await updateDoc(userRef, {
-      [`contacts.${contactData?.id}`]: {
-        name: contactData?.name,
-        email: contactData?.email,
-        status: contactData?.status || "",
-        profilePicture: contactData?.profilePicture || "",
+      [`contacts.${userToAdd?.uid}`]: {
+        name: userToAdd?.name,
+        email: userToAdd?.email,
+        status: userToAdd?.status || "",
+        profilePicture: userToAdd?.profilePicture || "",
       },
     });
 

@@ -1,15 +1,16 @@
 import React, { useState } from "react";
 import Input from "../input/input";
-import { getUserByEmail } from "../../controllers/userController";
+import { getUserByEmail, addContactToUser } from "../../controllers/userController";
+import Spinner from "../spinner/Spinner"
 
 interface AddContactModalProps {
   onClose: () => void;
   onAddContact: (contactId: string) => void;
 }
 
-const AddContactModal: React.FC<AddContactModalProps> = ({ onClose, onAddContact }) => {
+const AddContactModal: React.FC<AddContactModalProps> = ({ onClose }) => {
   const [email, setEmail] = useState("");
-  const [searchResult, setSearchResult] = useState<{ id: string; name: string } | null>(null);
+  const [searchResult, setSearchResult] = useState<{ id: string; name: string, email: string, status: string, profilePicture: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -22,8 +23,10 @@ const AddContactModal: React.FC<AddContactModalProps> = ({ onClose, onAddContact
       const response = await getUserByEmail(email);
 
       if (response.success && response.data) {
-        const { id, name } = response.data as { id: string; name: string };
-        setSearchResult({ id, name });
+        const { id, name, status, email, profilePicture } = response.data as { id: string; name: string, status: string, email: string, profilePicture: string };
+
+        console.log(profilePicture)
+        setSearchResult({ id, name, email, status, profilePicture });
       } else {
         setError("User not found");
       }
@@ -34,17 +37,17 @@ const AddContactModal: React.FC<AddContactModalProps> = ({ onClose, onAddContact
     }
   };
 
-  const handleAddContact = () => {
+  const handleAddContact = async () => {
     if (searchResult && searchResult.id) {
-      onAddContact(searchResult.id);
+      await addContactToUser({ uid: searchResult.id, name: searchResult.name, status: searchResult.status, email: searchResult.email, contacts: [], profilePicture: searchResult.profilePicture })
       onClose();
     }
   };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-main-color bg-opacity-80">
-      <div className="bg-gray-800 p-6 rounded-lg shadow-lg w-96">
-        <h2 className="text-lg font-semibold text-center text-white mb-4">
+      <div className="flex flex-col space-y-3 bg-gray-800 p-6 rounded-lg shadow-lg w-96">
+        <h2 className="text-lg font-semibold text-center text-white">
           Add a New Contact
         </h2>
         <Input
@@ -55,6 +58,21 @@ const AddContactModal: React.FC<AddContactModalProps> = ({ onClose, onAddContact
           inputName="email"
           onChangeAction={(e) => setEmail(e.target.value)}
         />
+        <div className="p-2">
+          {loading && <Spinner></Spinner>}
+          {error && <p className="text-red-500 text-center">{error}</p>}
+          {searchResult && (
+            <div className="p-4 bg-gray-700 rounded text-white">
+              <p>Name: {searchResult.name}</p>
+              <button
+                onClick={handleAddContact}
+                className="bg-green-700 p-2 mt-2 w-full rounded text-white hover:bg-green-600"
+              >
+                Add Contact
+              </button>
+            </div>
+          )}
+        </div>
         <button
           onClick={handleSearch}
           className="w-full bg-royal-blue p-2 rounded text-white hover:bg-blue-500"
@@ -62,18 +80,8 @@ const AddContactModal: React.FC<AddContactModalProps> = ({ onClose, onAddContact
         >
           {loading ? "Searching..." : "Search"}
         </button>
-        {error && <p className="text-red-500 mt-4 text-center">{error}</p>}
-        {searchResult && (
-          <div className="mt-4 p-4 bg-gray-700 rounded text-white">
-            <p>Name: {searchResult.name}</p>
-            <button
-              onClick={handleAddContact}
-              className="bg-green-700 p-2 mt-2 w-full rounded text-white hover:bg-green-600"
-            >
-              Add Contact
-            </button>
-          </div>
-        )}
+
+
         <button
           onClick={onClose}
           className="w-full mt-4 bg-gray-600 p-2 rounded text-white hover:bg-gray-700"
