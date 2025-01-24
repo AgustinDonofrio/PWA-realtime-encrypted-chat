@@ -2,25 +2,21 @@ import React, { useState, useEffect } from "react";
 import Header from "../../components/header/Header";
 import ContactList from "../../components/contacts/ContactList";
 import AddContactModal from "../../components/modal/AddContactModal";
-import { updateDoc, arrayUnion, doc } from "firebase/firestore";
 import { db } from "../../firebase/firebase.config";
 import { getUserByEmail, getLoggedEmail } from "../../controllers/userController";
+import { getLastMessage } from "../../controllers/messageController";
 import Spinner from "../../components/spinner/Spinner";
 
 const ContactsPage: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [contacts, setContacts] = useState<
-    { name: string; status: string; profilePicture: string; email: string; id: string }[]
+    { name: string; status: string; profilePicture: string; email: string; lastMessage: string, isFile: boolean; id: string }[]
   >([]);
   const [filteredContacts, setFilteredContacts] = useState<
     { name: string; status: string; profilePicture: string; email: string; id: string }[]
   >([]);
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
-
-
-  // ID del documento del usuario principal
-  const userDocId = "tOdmKCe4wsfasJqqdPHFV3xaF6I2";
 
   const fetchContacts = async () => {
     try {
@@ -41,21 +37,26 @@ const ContactsPage: React.FC = () => {
         return;
       }
 
-      const contacts: { [key: string]: { name: string; status: string; profilePicture: string; email: string} } = 
+      const contacts: { [key: string]: { name: string; status: string; profilePicture: string; email: string; lastMessage: string, isFile: boolean} } = 
         (userData.data && "contacts" in userData.data) ? userData.data.contacts : {};
 
-      if (Object.keys(contacts).length > 0) {
-        const contactsData = Object.entries(contacts).map(([key, value]) => ({
-          name: value?.name || "",
-          status: value?.status || "",
-          profilePicture: value?.profilePicture || "",
-          email: value?.email || "",
-          id: key,
-        }));
-        setContacts(contactsData);
-        setFilteredContacts(contactsData); // Inicialización de los contactos filtrados
-      }
+      const contactsData = await Promise.all(
+        Object.entries(contacts).map(async ([key, value]) => {
+          const lastMessage = await getLastMessage(key);
+          return {
+            id: key,
+            name: value.name || "",
+            status: value.status || "",
+            profilePicture: value.profilePicture || "",
+            email: value.email || "",
+            lastMessage: lastMessage?.text || "", // Texto del último mensaje
+            isFile: lastMessage?.isFile || false, // Si el último mensaje es un archivo
+          };
+        })
+      );
 
+      setContacts(contactsData);
+      setFilteredContacts(contactsData);
     } catch (error) {
       console.error("Error obteniendo contactos:", error);
     } finally {

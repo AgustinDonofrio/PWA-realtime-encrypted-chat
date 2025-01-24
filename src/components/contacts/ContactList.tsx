@@ -3,7 +3,13 @@ import ContactCard from "./ContactCard";
 import SearchBar from "./SearchBar";
 
 interface Contact {
-  name: string | ""; status: string | ""; profilePicture: string | ""; email: string | ""; id: string;
+  name: string | ""; 
+  status: string | ""; 
+  profilePicture: string | ""; 
+  email: string | ""; 
+  id: string;
+  lastMessage?: string;
+  isFile?: boolean;
 }
 
 interface ContactListProps {
@@ -50,6 +56,8 @@ const ContactList: React.FC<ContactListProps> = ({ contacts, onAddContact, onSea
                 status={contact.status}
                 image={contact.profilePicture}
                 id={contact.id}
+                lastMessage={contact.lastMessage}
+                isFile={contact.isFile}
               />
             ))
           ) : (

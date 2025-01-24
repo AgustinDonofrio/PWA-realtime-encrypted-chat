@@ -1,12 +1,14 @@
 import { db, auth } from "../firebase/firebase.config";
 import {
   doc,
+  getDocs,
   addDoc,
   collection,
   query,
   onSnapshot,
   orderBy,
   where,
+  limit,
   Timestamp,
 } from "firebase/firestore";
 import {
@@ -156,5 +158,41 @@ export const sendMessage = async (
       success: false,
       message: mapAuthCodeToMessage(error.code),
     };
+  }
+};
+
+export const getLastMessage = async (contactId: string) => {
+  try {
+    if (!auth.currentUser?.uid) {
+      throw new Error("User is not authenticated");
+    }
+
+    const messagesRef = collection(db, "messages");
+
+    const q = query(
+      messagesRef,
+      where("to", "in", [auth.currentUser.uid, contactId]),
+      where("from", "in", [auth.currentUser.uid, contactId]),
+      orderBy("creationDate", "desc"),
+      limit(1)
+    );
+
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      return null;
+    }
+
+    const lastMessage = querySnapshot.docs[0].data();
+    return {
+      text: lastMessage.text ? decryptMessage(lastMessage.text) : "",
+      isFile: lastMessage.isFile || false,
+      creationDate: lastMessage.creationDate?.toDate() || new Date(),
+      from: lastMessage.from,
+      to: lastMessage.to,
+    };
+  } catch (error) {
+    console.error("Error fetching last message:", error);
+    return null;
   }
 };
