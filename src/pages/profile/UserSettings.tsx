@@ -4,6 +4,7 @@ import Header from "../../components/header/Header";
 import LoadingPage from "../loading/LoadingPage";
 import { getAuth, User } from "firebase/auth";
 import { getUserById, updateProfilePicture } from "../../controllers/userController";
+import Snackbar from "../../components/snackbar/Snackbar";
 
 const UserSettings: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -17,6 +18,20 @@ const UserSettings: React.FC = () => {
   });
   const [isEditingName, setIsEditingName] = useState(false);
   const [isEditingStatus, setIsEditingStatus] = useState(false);
+
+  const [snackbar, setSnackbar] = useState<{ isOpen: boolean; message: string; type: "success" | "error" | "info" }>({
+    isOpen: false,
+    message: "",
+    type: "info",
+  });
+
+  const showSnackbar = (message: string, type: "success" | "error" | "info" = "info") => {
+    setSnackbar({ isOpen: true, message, type });
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar((prev) => ({ ...prev, isOpen: false }));
+  };
 
   useEffect(() => {
     const auth = getAuth();
@@ -38,6 +53,7 @@ const UserSettings: React.FC = () => {
           }
         } catch (error) {
           console.error("Error fetching user profile: ", error);
+          showSnackbar("Failed to fetch user data.", "error")
         } finally {
           setLoading(false);
         }
@@ -51,11 +67,13 @@ const UserSettings: React.FC = () => {
 
   const handleSaveName = () => {
     setIsEditingName(false);
+    showSnackbar("Name updated successfully!", "success");
     console.log("Nuevo nombre guardado:", profileData.name); // COMPLETAR!
   };
 
   const handleSaveStatus = () => {
     setIsEditingStatus(false);
+    showSnackbar("Status updated successfully!", "success");
     console.log("Nuevo estado guardado:", profileData.status); // COMPLETAR!
   };
 
@@ -75,13 +93,13 @@ const UserSettings: React.FC = () => {
       const { imageUrl } = await updateProfilePicture(file, user.uid);
       if (imageUrl) {
         setProfileData((prev) => ({ ...prev, profilePicture: imageUrl }));
-        alert("Profile picture updated successfully!");
+        showSnackbar("Profile picture updated successfully!", "success");
       } else {
-        alert("Failed to upload the photo.");
+        showSnackbar("Failed to upload the photo.", "error");
       }
     } catch (error) {
       console.error("Error uploading photo:", error);
-      alert("An error occurred while uploading the photo.");
+      showSnackbar("An error occurred while uploading the photo.", "error");
     } finally {
       setUploading(false);
     }
@@ -147,7 +165,7 @@ const UserSettings: React.FC = () => {
         </div>
 
         {/* Información del Usuario */}
-        <div className="mt-10 px-6">
+        <div className="mt-10 px-6 relative">
           {/* Nombre del usuario */}
           <h3 className="text-gray-400 text-m mb-2">Name</h3>
           <div className="flex items-center space-x-2">
@@ -165,12 +183,14 @@ const UserSettings: React.FC = () => {
                 </button>
               </>
             ) : (
-              <>
+              <div className="relative w-full">
                 <h2 className="text-white text-lg font-semibold">{profileData.name}</h2>
-                <button onClick={() => setIsEditingName(true)} className="text-gray-500 hover:text-white">
-                  <FiEdit2 />
-                </button>
-              </>
+                <div className="absolute top-0 right-0 flex space-x-4">
+                  <button onClick={() => setIsEditingName(true)} className="text-gray-500 hover:text-white">
+                    <FiEdit2 />
+                  </button>
+                </div>
+              </div>
             )}
           </div>
           <p className="text-gray-500 text-sm mt-1">
@@ -196,19 +216,29 @@ const UserSettings: React.FC = () => {
                   </button>
                 </>
               ) : (
-                <>
+                <div className="relative w-full">
                   <p className="text-white whitespace-pre-wrap break-words">
                     {formatTextWithLineBreaks(profileData.status, 45)}
                   </p>
-                  <button onClick={() => setIsEditingStatus(true)} className="text-gray-400 hover:text-white">
-                    <FiEdit2 />
-                  </button>
-                </>
+                  <div className="absolute top-0 right-0 flex space-x-4">
+                    <button onClick={() => setIsEditingStatus(true)} className="text-gray-500  hover:text-white">
+                      <FiEdit2 />
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
           </div>
         </div>
       </div>
+      {/* Snackbar */}
+      {snackbar.isOpen && (
+        <Snackbar
+          message={snackbar.message}
+          type={snackbar.type}
+          onClose={handleCloseSnackbar}
+        />
+      )}
     </div>
   );
 
