@@ -10,9 +10,13 @@ import Spinner from "../../components/spinner/Spinner";
 const ContactsPage: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [contacts, setContacts] = useState<
-    { name: string; status: string; profilePicture: string; id: string }[]
+    { name: string; status: string; profilePicture: string; email: string; id: string }[]
+  >([]);
+  const [filteredContacts, setFilteredContacts] = useState<
+    { name: string; status: string; profilePicture: string; email: string; id: string }[]
   >([]);
   const [loading, setLoading] = useState(true);
+  const [searchText, setSearchText] = useState("");
 
 
   // ID del documento del usuario principal
@@ -24,29 +28,32 @@ const ContactsPage: React.FC = () => {
       const loggedEmail = getLoggedEmail();
 
       if (!loggedEmail) {
-        console.error("No authenticate");
+        console.error("No authenticated user");
         setLoading(false);
         return;
       }
 
       const userData = await getUserByEmail(loggedEmail);
 
-      if (userData == null) {
-        console.error("Usuario not found");
+      if (!userData) {
+        console.error("User not found");
         setLoading(false);
         return;
       }
 
-      const contacts: { [key: string]: { name: string; status: string; profilePicture: string } } = (userData.data && 'contacts' in userData.data) ? userData.data.contacts : {};
-
+      const contacts: { [key: string]: { name: string; status: string; profilePicture: string; email: string} } = 
+        (userData.data && "contacts" in userData.data) ? userData.data.contacts : {};
 
       if (Object.keys(contacts).length > 0) {
-        const contactsData: { name: string; status: string; profilePicture: string; id: string }[] = [];
-        for (const [key, value] of Object.entries(contacts)) {
-          contactsData.push({ name: value?.name || "", status: value?.status || "", profilePicture: value?.profilePicture || "", id: key });
-        }
-
+        const contactsData = Object.entries(contacts).map(([key, value]) => ({
+          name: value?.name || "",
+          status: value?.status || "",
+          profilePicture: value?.profilePicture || "",
+          email: value?.email || "",
+          id: key,
+        }));
         setContacts(contactsData);
+        setFilteredContacts(contactsData); // Inicialización de los contactos filtrados
       }
 
     } catch (error) {
@@ -60,20 +67,20 @@ const ContactsPage: React.FC = () => {
     fetchContacts();
   }, []);
 
-  const handleAddContact = async (contactId: string) => {
-    try {
-      const userDocRef = doc(db, "users", userDocId);
-
-      await updateDoc(userDocRef, {
-        contacts: arrayUnion(contactId),
-      });
-
-      alert("Contact added successfully!");
-    } catch (error) {
-      console.error("Error adding contact:", error);
-      alert("Failed to add contact.");
+  // Filtrar contactos cuando cambia el texto de búsqueda
+  useEffect(() => {
+    if (!searchText.trim()) {
+      setFilteredContacts(contacts);
+      return;
     }
-  };
+  
+    const filtered = contacts.filter(
+      (contact) =>
+        contact.name.toLowerCase().includes(searchText.toLowerCase()) ||
+        contact.email.toLowerCase().includes(searchText.toLowerCase())
+    );
+    setFilteredContacts(filtered);
+  }, [searchText, contacts]);
 
   return (
     <div className="h-screen w-full mx-auto bg-main-color flex flex-col relative shadow-lg">
@@ -81,7 +88,15 @@ const ContactsPage: React.FC = () => {
         title="BlueCrypt"
         rightButton="settings"
       />
-      {loading ? (<Spinner />) : (<><ContactList contacts={contacts} onAddContact={() => setShowModal(true)} />
+      {loading ? (
+        <Spinner />
+      ) : (
+        <>
+          <ContactList 
+            contacts={filteredContacts} 
+            onAddContact={() => setShowModal(true)} 
+            onSearch={(text) => setSearchText(text)}
+          />
         {contacts.length > 0 && (
           <button
             onClick={() => setShowModal(true)}

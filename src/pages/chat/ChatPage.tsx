@@ -23,7 +23,7 @@ const ChatPage: React.FC = () => {
   });
   const messagesEndRef = useRef<HTMLDivElement>(null); //Para scroll automático
   const [hasLoaded, setHasLoaded] = useState(false); // Para controlar animación inicial
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   // Obtener los datos del usuario con el que se está chateando
   useEffect(() => {
@@ -41,7 +41,7 @@ const ChatPage: React.FC = () => {
       } catch (error) {
         console.error("Error fetching chat user:", error);
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
 
@@ -103,7 +103,9 @@ const ChatPage: React.FC = () => {
     return groups;
   }, {});
 
-  if (!isLoading) {
+  if (loading) {
+    return <LoadingPage />;
+  } else {
     scrollToBottom();
   }
 
@@ -118,7 +120,7 @@ const ChatPage: React.FC = () => {
       />
 
       {/* Lista de mensajes */}
-      {!isLoading ? (
+      {!loading ? (
         <>
           <div className="flex-1 h-full overflow-y-auto px-4 py-3 space-y-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800">
             {Object.entries(groupedMessages).map(([date, messages]) => (
