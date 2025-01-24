@@ -90,10 +90,10 @@ const Header: React.FC<HeaderProps> = ({
           </div>
         ))}
 
-      {/* Cartel de confirmación de cierre de sesión */}
+      {/* Modal de confirmación */}
       {showConfirmLogout && (
-        <div className="fixed inset-0 flex items-center justify-center bg-main-color bg-opacity-80">
-          <div className="bg-main-color p-6 rounded-lg shadow-lg">
+        <div className="fixed inset-0 flex items-center justify-center bg-main-color bg-opacity-80 z-50">
+          <div className="bg-steel p-6 rounded-lg shadow-lg">
             <h2 className="text-lg font-semibold mb-4 text-white">
               Are you sure to log out?
             </h2>

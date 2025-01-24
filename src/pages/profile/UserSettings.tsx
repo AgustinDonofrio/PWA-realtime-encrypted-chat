@@ -126,7 +126,6 @@ const UserSettings: React.FC = () => {
     return lines.join("\n");
   };
 
-
   // Mostrar pantalla de carga mientras se está cargando la información
   if (loading || uploading) {
     return <LoadingPage />;
@@ -184,7 +183,7 @@ const UserSettings: React.FC = () => {
               </>
             ) : (
               <div className="relative w-full">
-                <h2 className="text-white text-lg font-semibold">{profileData.name}</h2>
+                <h2 className="text-white text-lg font-normal">{profileData.name}</h2>
                 <div className="absolute top-0 right-0 flex space-x-4">
                   <button onClick={() => setIsEditingName(true)} className="text-gray-500 hover:text-white">
                     <FiEdit2 />
