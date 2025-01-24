@@ -14,7 +14,7 @@ const ContactCard: React.FC<ContactCardProps> = ({ name, status, image, id }) =>
 
   return (
     <div
-      className="flex items-center gap-4 p-3 m-4 bg-gray-700 hover:bg-slate-600 rounded-lg cursor-pointer"
+      className="flex items-center gap-4 p-3 m-4  hover:bg-steel rounded-lg cursor-pointer"
       onClick={() => navigate(`/chat/${id}`)}
     >
       <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-500 flex items-center justify-center">
