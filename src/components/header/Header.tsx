@@ -85,7 +85,9 @@ const Header: React.FC<HeaderProps> = ({
             className="w-10 h-10 rounded-full"
           />
         ) : (
-          <FaUser className="text-white text-2xl bg-main-color" />
+          <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-500 flex items-center justify-center">
+            <FaUser className="text-white text-2xl bg-gray-500" />
+          </div>
         ))}
 
       {/* Cartel de confirmación de cierre de sesión */}
