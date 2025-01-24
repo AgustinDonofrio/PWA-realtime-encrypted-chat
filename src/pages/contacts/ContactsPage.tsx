@@ -84,9 +84,9 @@ const ContactsPage: React.FC = () => {
       {loading ? (<Spinner />) : (<><ContactList contacts={contacts} onAddContact={() => setShowModal(true)} />
         {contacts.length > 0 && (
           <button
-          onClick={() => setShowModal(true)}
-          className="absolute bottom-6 right-6 bg-royal-blue w-14 h-14 rounded-full flex items-center justify-center shadow-md"
-          aria-label="Add Contact"
+            onClick={() => setShowModal(true)}
+            className="absolute bottom-6 right-6 bg-royal-blue w-14 h-14 rounded-full flex items-center justify-center shadow-md"
+            aria-label="Add Contact"
           >
             {/* Simula el "+" del botón */}
             <span className="relative block w-4 h-4">

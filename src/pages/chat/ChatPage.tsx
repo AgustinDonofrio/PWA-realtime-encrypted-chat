@@ -46,6 +46,8 @@ const ChatPage: React.FC = () => {
     };
 
     fetchChatUser();
+
+    scrollToBottom()
   }, [userId]);
 
   // Obtener mensajes en tiempo real
@@ -61,6 +63,7 @@ const ChatPage: React.FC = () => {
         unsubscribe();
       }
     };
+
   }, [userId]);
 
   // Hacer scroll cada vez que cambian los mensajes
@@ -80,6 +83,7 @@ const ChatPage: React.FC = () => {
   };
 
   const handleSendMessage = async (message: string, imageUrl?: string) => {
+    scrollToBottom(); // Hacer scroll al final después de enviar un mensaje
     if (userId) {
       await sendMessage(userId, message, imageUrl);
     }
@@ -99,8 +103,8 @@ const ChatPage: React.FC = () => {
     return groups;
   }, {});
 
-  if (isLoading) {
-    return <LoadingPage />;
+  if (!isLoading) {
+    scrollToBottom();
   }
 
   return (
@@ -114,27 +118,30 @@ const ChatPage: React.FC = () => {
       />
 
       {/* Lista de mensajes */}
-      <div className="flex-1 h-full overflow-y-auto px-4 py-3 space-y-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800">
-        {Object.entries(groupedMessages).map(([date, messages]) => (
-          <div key={date}>
-            {/* Fecha como separador */}
-            <DateSeparator date={date} />
-            {messages.map((msg, index) => (
-              <MessageBubble
-                key={index}
-                text={msg.text}
-                imageUrl={msg.imageUrl}
-                isSender={msg.isSender}
-                timestamp={msg.timestamp}
-              />
+      {!isLoading ? (
+        <>
+          <div className="flex-1 h-full overflow-y-auto px-4 py-3 space-y-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800">
+            {Object.entries(groupedMessages).map(([date, messages]) => (
+              <div key={date}>
+                {/* Fecha como separador */}
+                <DateSeparator date={date} />
+                {messages.map((msg, index) => (
+                  <MessageBubble
+                    key={index}
+                    text={msg.text}
+                    imageUrl={msg.imageUrl}
+                    isSender={msg.isSender}
+                    timestamp={msg.timestamp}
+                  />
+                ))}
+              </div>
             ))}
+            <div ref={messagesEndRef} />
           </div>
-        ))}
-        <div ref={messagesEndRef} /> {/* Para asegurar el scroll al final */}
-      </div>
+          <InputBar onSend={handleSendMessage} />
+        </>
+      ) : (<><LoadingPage /></>)}
 
-      {/* Barra del input */}
-      <InputBar onSend={handleSendMessage} />
     </div>
   );
 };
