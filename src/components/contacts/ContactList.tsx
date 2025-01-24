@@ -10,24 +10,31 @@ interface Contact {
 
 interface ContactListProps {
   contacts: Contact[];
+  onAddContact: () => void; // Función para manejar la acción de añadir contactos
 }
 
-const ContactList: React.FC<ContactListProps> = ({ contacts }) => {
+const ContactList: React.FC<ContactListProps> = ({ contacts, onAddContact }) => {
 
   return (
     <div className="overflow-y-auto flex-1">
       {contacts?.length === 0 ? (
-        <div className="flex flex-col items-center justify-center text-white text-center">
+        <div className="flex flex-col  h-full items-center justify-center text-white text-center">
           <img
             src="/images/no-contacts.png"
             alt="No contacts"
-            className="w-52 h-44 mb-4 mt-4"
+            className="w-52 h-44 mb-4 -mt-10"
           />
-          <p>You have not contacts. Let's add some!</p>
+          <p className="mb-5">You have not contacts. Let's add some!</p>
+          <button
+            onClick={onAddContact}
+            className="bg-royal-blue text-white py-2 px-6 rounded-full hover:bg-blue-500 transition-colors"
+          >
+            Add a New Contact
+          </button>
         </div>
       ) : (
         <>
-          {contacts.length >= 0 && <SearchBar />}
+          <SearchBar />
           {contacts.map((contact, index) => (
             <ContactCard
               key={index}
