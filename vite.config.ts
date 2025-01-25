@@ -90,6 +90,10 @@ export default defineConfig({
       "@pages": resolve(__dirname, "src/pages"),
     },
   },
+  server: {
+    host: true, // Permite 0.0.0.0 para aceptar conexiones externas
+    port: 3000,
+  },
   preview: {
     host: true, // Permite 0.0.0.0 en el modo preview
     port: 3000, // Usa el puerto de entorno o 3000
