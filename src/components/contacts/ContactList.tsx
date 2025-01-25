@@ -10,6 +10,7 @@ interface Contact {
   id: string;
   lastMessage?: string;
   isFile?: boolean;
+  isAgended?: boolean;
 }
 
 interface ContactListProps {
@@ -20,18 +21,17 @@ interface ContactListProps {
 
 const ContactList: React.FC<ContactListProps> = ({ contacts, onAddContact, onSearch }) => {
   const [isSearching, setIsSearching] = useState(false);
+  const hasContacts = contacts.length > 0;
 
   const handleSearch = (text: string) => {
     setIsSearching(text.length > 0); // Activar modo "búsqueda" sólo si hay texto
     onSearch(text);
   };
 
-  const hasContacts = contacts.length > 0;
-
   return (
-    <div className="flex-1 h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800">
+    <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800">
       {!hasContacts && !isSearching ? (
-        <div className="flex flex-col  h-full items-center justify-center text-white text-center">
+        <div className="flex h-full flex-col items-center justify-center text-white text-center">
           <img
             src="/images/no-contacts.png"
             alt="No contacts"
@@ -53,16 +53,18 @@ const ContactList: React.FC<ContactListProps> = ({ contacts, onAddContact, onSea
               <ContactCard
                 key={index}
                 name={contact.name}
+                email={contact.email}
                 status={contact.status}
-                image={contact.profilePicture}
+                profilePicture={contact.profilePicture}
                 id={contact.id}
                 lastMessage={contact.lastMessage}
                 isFile={contact.isFile}
+                isAgended={contact.isAgended}
               />
             ))
           ) : (
             // Mensaje para búsqueda sin resultados
-            <div className="flex h-full items-center justify-center text-white text-center">
+            <div className="flex items-center justify-center text-white text-center">
               <p>No contacts match your search.</p>
             </div>
           )}

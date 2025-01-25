@@ -9,6 +9,7 @@ import {
   orderBy,
   where,
   limit,
+  or,
   Timestamp,
 } from "firebase/firestore";
 import {
@@ -194,5 +195,30 @@ export const getLastMessage = async (contactId: string) => {
   } catch (error) {
     console.error("Error fetching last message:", error);
     return null;
+  }
+};
+
+export const getMessagesByUser = async (userId: string) => {
+  try {
+    if (!userId) {
+      throw new Error("User ID is required");
+    }
+
+    const messagesRef = collection(db, "messages");
+
+    // Crear las condiciones `where` para "to" y "from"
+    const toCondition = where("to", "==", userId);
+    const fromCondition = where("from", "==", userId);
+
+    // Combinar las condiciones con `or`
+    const q = query(messagesRef, or(toCondition, fromCondition));
+
+    const querySnapshot = await getDocs(q);
+
+    const messages = querySnapshot.docs.map((doc) => doc.data());
+    return messages;
+  } catch (error) {
+    console.error("Error fetching messages by user:", error);
+    return [];
   }
 };
