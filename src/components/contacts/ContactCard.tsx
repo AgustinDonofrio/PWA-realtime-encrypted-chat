@@ -52,6 +52,31 @@ const ContactCard: React.FC<ContactCardProps> = ({ name, email, status, profileP
           )}
         </p>
       </div>
+      {/* Botones de acción para contactos no agendados */}
+      {!isAgended && (
+        <div className="flex gap-2 ml-auto">
+          <button
+            onClick={(e) => {
+              e.stopPropagation(); // Evitar que se active el onClick del contenedor
+              //onBlockContact?.(id);
+            }}
+            className="p-2 bg-red-600 text-white rounded-full hover:bg-red-500"
+            title="Bloquear contacto"
+          >
+            <FaBan />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation(); // Evitar que se active el onClick del contenedor
+              //onAddContact?.(id);
+            }}
+            className="p-2 bg-green-600 text-white rounded-full hover:bg-green-500"
+            title="Agregar contacto"
+          >
+            <FaPlus />
+          </button>
+        </div>
+      )}
     </div>
   );
 };
