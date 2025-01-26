@@ -15,7 +15,7 @@ interface Contact {
 
 interface ContactListProps {
   contacts: Contact[];
-  onAddContact: () => void; // Función para manejar la acción de añadir contactos
+  onAddContact: (id: string) => void; // Función para manejar la acción de añadir contactos
   onSearch: (text: string) => void; // Función para manejar la búsqueda de contactos
 }
 
@@ -39,7 +39,7 @@ const ContactList: React.FC<ContactListProps> = ({ contacts, onAddContact, onSea
           />
           <p className="mb-5">You have not contacts. Let's add some!</p>
           <button
-            onClick={onAddContact}
+            onClick={() => onAddContact("")}
             className="bg-royal-blue text-white py-2 px-6 rounded-full hover:bg-blue-500 transition-colors"
           >
             Add a New Contact
@@ -60,6 +60,7 @@ const ContactList: React.FC<ContactListProps> = ({ contacts, onAddContact, onSea
                 lastMessage={contact.lastMessage}
                 isFile={contact.isFile}
                 isAgended={contact.isAgended}
+                onAddContact={onAddContact}
               />
             ))
           ) : (

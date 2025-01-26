@@ -11,10 +11,11 @@ interface ContactCardProps {
   id: string;
   lastMessage?: string; // Último mensaje enviado o recibido
   isFile?: boolean; // Si el último mensaje es un archivo
-  isAgended?: boolean // Indica si el usuario está en la lista de contactos
+  isAgended?: boolean; // Indica si el usuario está en la lista de contactos
+  onAddContact?: (id: string) => void; // Función para agregar un contacto no agendado
 }
 
-const ContactCard: React.FC<ContactCardProps> = ({ name, email, status, profilePicture, id, lastMessage, isFile, isAgended }) => {
+const ContactCard: React.FC<ContactCardProps> = ({ name, email, status, profilePicture, id, lastMessage, isFile, isAgended, onAddContact }) => {
   const navigate = useNavigate();
 
   return (
@@ -55,7 +56,7 @@ const ContactCard: React.FC<ContactCardProps> = ({ name, email, status, profileP
       {/* Botones de acción para contactos no agendados */}
       {!isAgended && (
         <div className="flex gap-2 ml-auto">
-          <button
+          {/* <button
             onClick={(e) => {
               e.stopPropagation(); // Evitar que se active el onClick del contenedor
               //onBlockContact?.(id);
@@ -64,11 +65,11 @@ const ContactCard: React.FC<ContactCardProps> = ({ name, email, status, profileP
             title="Bloquear contacto"
           >
             <FaBan />
-          </button>
+          </button> */}
           <button
             onClick={(e) => {
               e.stopPropagation(); // Evitar que se active el onClick del contenedor
-              //onAddContact?.(id);
+              onAddContact?.(id);
             }}
             className="p-2 bg-green-600 text-white rounded-full hover:bg-green-500"
             title="Agregar contacto"

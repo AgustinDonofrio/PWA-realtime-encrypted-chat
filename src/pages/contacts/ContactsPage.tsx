@@ -3,7 +3,7 @@ import Header from "../../components/header/Header";
 import ContactList from "../../components/contacts/ContactList";
 import AddContactModal from "../../components/modal/AddContactModal";
 import { db, auth } from "../../firebase/firebase.config";
-import { getUserByEmail, getLoggedEmail, getUserById} from "../../controllers/userController";
+import { getUserByEmail, getLoggedEmail, getUserById, addContactToUser } from "../../controllers/userController";
 import { getLastMessage, getMessagesByUser } from "../../controllers/messageController";
 import Spinner from "../../components/spinner/Spinner";
 
@@ -110,6 +110,25 @@ const ContactsPage: React.FC = () => {
     fetchContacts();
   }, []);
 
+  const handleAddContact = async (contactId: string) => {
+    try {
+      const userToAdd = await getUserById(contactId);
+      if (userToAdd) {
+        await addContactToUser({
+          uid: userToAdd.id,
+          name: userToAdd.name,
+          email: userToAdd.email,
+          status: userToAdd.status,
+          profilePicture: userToAdd.profilePicture,
+          contacts: {},
+        });
+        await fetchContacts(); // Recargar la lista de contactos
+      }
+    } catch (error) {
+      console.error("Error adding contact:", error);
+    }
+  };
+
   // Filtrar contactos cuando cambia el texto de búsqueda
   useEffect(() => {
     if (!searchText.trim()) {
@@ -137,7 +156,7 @@ const ContactsPage: React.FC = () => {
         <>
           <ContactList 
             contacts={filteredContacts} 
-            onAddContact={() => setShowModal(true)} 
+            onAddContact={handleAddContact} 
             onSearch={(text) => setSearchText(text)}
           />
         {contacts.length > 0 && (
