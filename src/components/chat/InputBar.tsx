@@ -4,7 +4,7 @@ import { uploadImage } from "../../controllers/messageController";
 import { uploadToCloudinary } from "../../controllers/cloudinaryController"
 
 interface InputBarProps {
-  onSend: (message: string, imageUrl?: string) => void;
+  onSend: (message: string, imageFile?: File) => void;
 }
 
 const InputBar: React.FC<InputBarProps> = ({ onSend }) => {
@@ -51,19 +51,9 @@ const InputBar: React.FC<InputBarProps> = ({ onSend }) => {
     const file = event.target.files?.[0];
     if (file) {
       try {
-        const result = await uploadToCloudinary(file);
 
-        if (result) {
-          onSend("", result)
-        }
-        console.log(result);
-        // setUploadProgress(0); // Inicializar progreso
-        // const imageUrl = await uploadImage(file, "images", (progress) => {
-        //   setUploadProgress(progress); // Actualizar progreso
-        // });
-        // if (onSendImage) {
-        //   onSendImage(imageUrl); // Llamar al callback para enviar la imagen
-        // }
+        onSend("", file)
+
       } catch (error) {
         console.error("Error uploading image:", error);
       } finally {
