@@ -11,7 +11,6 @@ import {
 } from "firebase/firestore";
 import { mapAuthCodeToMessage } from "../helpers/utils";
 import { uploadToCloudinary } from "./cloudinaryController";
-import { profile } from "console";
 
 interface User {
   name: string;
@@ -40,6 +39,7 @@ export const getUserById = async (userId: string) => {
 
     const userData = userDocSnap.data();
     userData.id = userDocSnap.id;
+
     return userData;
   } catch (error) {
     console.error("Error getting user", error);

@@ -52,9 +52,11 @@ const AddContactModal: React.FC<AddContactModalProps> = ({ onClose, reloadContac
   };
 
   const handleAddContact = async () => {
+
     if (searchResult && searchResult.id) {
       setLoading(true);
       await addContactToUser({ uid: searchResult.id, name: searchResult.name, status: searchResult.status, email: searchResult.email, contacts: [], profilePicture: searchResult.profilePicture })
+
       await reloadContactList();
       setLoading(false);
       onClose();

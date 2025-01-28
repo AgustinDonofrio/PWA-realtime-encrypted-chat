@@ -7,6 +7,8 @@ import { getUserById } from "../../controllers/userController";
 import { subscribeToMessages, sendMessage } from "../../controllers/messageController";
 import LoadingPage from "../loading/LoadingPage";
 import { formatDate } from "../../helpers/utils";
+import { uploadToCloudinary } from "../../controllers/cloudinaryController";
+import Snackbar from "../../components/snackbar/Snackbar";
 
 const DateSeparator: React.FC<{ date: string }> = ({ date }) => (
   <div className="text-gray-400 text-sm text-center my-2">
@@ -24,7 +26,21 @@ const ChatPage: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null); //Para scroll automático
   const [hasLoaded, setHasLoaded] = useState(false); // Para controlar animación inicial
   const [loading, setLoading] = useState(true);
+  const [loadingImgUpload, setLoadingImgUpload] = useState(false);
+  const [isSnackbarOpen, setIsSnackbarOpen] = useState<boolean>(false);
+  const [snackbarMessage, setSnackbarMessage] = useState<string>('');
+  const [snackbarType, setSnackbarType] = useState<'success' | 'error' | 'info'>('info');
 
+  const showSnackbar = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setSnackbarMessage(message);
+    setSnackbarType(type);
+    setIsSnackbarOpen(true);
+  };
+
+
+  const handleSnackbarClose = () => {
+    setIsSnackbarOpen(false);
+  };
   // Obtener los datos del usuario con el que se está chateando
   useEffect(() => {
     if (!userId) return;
@@ -82,10 +98,30 @@ const ChatPage: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
   };
 
-  const handleSendMessage = async (message: string, imageUrl?: string) => {
+  const handleSendMessage = async (message: string, imageFile?: File) => {
     scrollToBottom(); // Hacer scroll al final después de enviar un mensaje
+    let imageUrl = ""
     if (userId) {
+
+
+      if (imageFile) {
+        setLoadingImgUpload(true);
+
+        const imgResult = await uploadToCloudinary(imageFile)
+
+        if (imgResult) {
+          imageUrl = imgResult
+        }
+        setLoadingImgUpload(false);
+      }
+
+      if (imageFile && imageUrl.length == 0) {
+        showSnackbar("We have problems to upload the selected image, please try again", "error")
+        return
+      }
+
       await sendMessage(userId, message, imageUrl);
+
     }
 
     setMessages([...messages, { text: message, imageUrl, isSender: true, timestamp: new Date() }]);
@@ -127,6 +163,7 @@ const ChatPage: React.FC = () => {
               <div key={date}>
                 {/* Fecha como separador */}
                 <DateSeparator date={date} />
+
                 {messages.map((msg, index) => (
                   <MessageBubble
                     key={index}
@@ -136,14 +173,24 @@ const ChatPage: React.FC = () => {
                     timestamp={msg.timestamp}
                   />
                 ))}
+
               </div>
             ))}
+            {loadingImgUpload ? <MessageBubble text="" imageUrl="" isSender={true} timestamp={new Date()}></MessageBubble> : null}
             <div ref={messagesEndRef} />
           </div>
           <InputBar onSend={handleSendMessage} />
         </>
       ) : (<><LoadingPage /></>)}
 
+      {isSnackbarOpen && (
+        <Snackbar
+          message={snackbarMessage}
+          type={snackbarType}
+          onClose={handleSnackbarClose}
+          duration={3000}
+        />
+      )}
     </div>
   );
 };
