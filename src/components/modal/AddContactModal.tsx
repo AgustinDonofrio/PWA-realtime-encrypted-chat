@@ -29,7 +29,7 @@ const AddContactModal: React.FC<AddContactModalProps> = ({ onClose, reloadContac
         return setError("Invalid email");
       }
 
-      if (loggedEmail == email) {
+      if (loggedEmail === email) {
         return setError("You can't search yourself");
       }
 

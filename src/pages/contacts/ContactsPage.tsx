@@ -22,35 +22,34 @@ const ContactsPage: React.FC = () => {
     try {
       setLoading(true);
       const loggedEmail = getLoggedEmail();
-
+  
       if (!loggedEmail) {
         console.error("No authenticated user");
         setLoading(false);
         return;
       }
-
+  
       const userData = await getUserByEmail(loggedEmail);
-
+  
       if (!userData) {
         console.error("User not found");
         setLoading(false);
         return;
       }
-
-      // Verificar si el usuario está autenticado
+  
       if (!auth.currentUser?.uid) {
         console.error("User is not authenticated");
         setLoading(false);
         return;
       }
-
+  
       // Obtener contactos agendados
       const agendedContacts: { [key: string]: { name: string; status: string; profilePicture: string; email: string } } =
         (userData.data && "contacts" in userData.data) ? userData.data.contacts : {};
-
+  
       // Obtener todos los mensajes del usuario actual
-      const messages = await getMessagesByUser(auth.currentUser.uid); // Aquí ya sabemos que uid es un string
-
+      const messages = await getMessagesByUser(auth.currentUser.uid);
+  
       // Extraer IDs de usuarios con los que se ha intercambiado mensajes
       const messageUserIds = new Set<string>();
       messages.forEach((message) => {
@@ -61,14 +60,16 @@ const ContactsPage: React.FC = () => {
           messageUserIds.add(message.to);
         }
       });
+  
+      // Combinar IDs de contactos agendados y de mensajes
+      const allUserIds = new Set([...Object.keys(agendedContacts), ...Array.from(messageUserIds)]);
 
-      // Combinar contactos agendados y no agendados
+      // Obtener datos para cada usuario
       const contactsData = await Promise.all(
-        Array.from(messageUserIds).map(async (userId) => {
+        Array.from(allUserIds).map(async (userId) => {
           const isAgended = agendedContacts[userId] !== undefined;
           const lastMessage = await getLastMessage(userId);
-
-          // Si el contacto está agendado, usar sus datos
+  
           if (isAgended) {
             return {
               id: userId,
@@ -81,7 +82,6 @@ const ContactsPage: React.FC = () => {
               isAgended: true,
             };
           } else {
-            // Si el contacto no está agendado, obtener sus datos básicos
             const userDoc = await getUserById(userId);
             return {
               id: userId,
@@ -96,7 +96,7 @@ const ContactsPage: React.FC = () => {
           }
         })
       );
-
+  
       setContacts(contactsData);
       setFilteredContacts(contactsData);
     } catch (error) {
