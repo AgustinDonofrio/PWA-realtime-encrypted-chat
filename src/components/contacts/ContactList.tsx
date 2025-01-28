@@ -3,10 +3,10 @@ import ContactCard from "./ContactCard";
 import SearchBar from "./SearchBar";
 
 interface Contact {
-  name: string | ""; 
-  status: string | ""; 
-  profilePicture: string | ""; 
-  email: string | ""; 
+  name: string | "";
+  status: string | "";
+  profilePicture: string | "";
+  email: string | "";
   id: string;
   lastMessage?: string;
   isFile?: boolean;
@@ -17,9 +17,10 @@ interface ContactListProps {
   contacts: Contact[];
   onAddContact: (id: string) => void; // Función para manejar la acción de añadir contactos
   onSearch: (text: string) => void; // Función para manejar la búsqueda de contactos
+  withoutContactAction: () => void;
 }
 
-const ContactList: React.FC<ContactListProps> = ({ contacts, onAddContact, onSearch }) => {
+const ContactList: React.FC<ContactListProps> = ({ contacts, onAddContact, withoutContactAction, onSearch }) => {
   const [isSearching, setIsSearching] = useState(false);
   const hasContacts = contacts.length > 0;
 
@@ -39,7 +40,7 @@ const ContactList: React.FC<ContactListProps> = ({ contacts, onAddContact, onSea
           />
           <p className="mb-5">You have not contacts. Let's add some!</p>
           <button
-            onClick={() => onAddContact("")}
+            onClick={withoutContactAction}
             className="bg-royal-blue text-white py-2 px-6 rounded-full hover:bg-blue-500 transition-colors"
           >
             Add a New Contact
