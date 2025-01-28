@@ -24,7 +24,7 @@ const ContactCard: React.FC<ContactCardProps> = ({ name, email, status, profileP
       onClick={() => navigate(`/chat/${id}`)}
     >
       {/* Imagen/ícono del contacto */}
-      <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-500 flex items-center justify-center">
+      <div className="w-12 h-12 min-w-12 min-h-12 rounded-full overflow-hidden bg-gray-500 flex items-center justify-center">
         {profilePicture ? (
           <img
             src={profilePicture}
@@ -37,12 +37,12 @@ const ContactCard: React.FC<ContactCardProps> = ({ name, email, status, profileP
       </div>
 
       {/* Detalles del contacto */}
-      <div>
+      <div className="line-clamp-3">
         <h2 className="text-white font-medium">
           {isAgended ? name : email}
         </h2>
         <p className="text-gray-400 text-sm">
-          {lastMessage && isAgended? (
+          {lastMessage && isAgended ? (
             isFile ? (
               <FaCamera className="inline-block text-gray-400" />
             ) : (

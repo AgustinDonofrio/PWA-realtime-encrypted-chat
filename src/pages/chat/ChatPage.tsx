@@ -173,9 +173,10 @@ const ChatPage: React.FC = () => {
                     timestamp={msg.timestamp}
                   />
                 ))}
-                {loadingImgUpload ? <MessageBubble text="" imageUrl="" isSender={true} timestamp={new Date()}></MessageBubble> : null}
+
               </div>
             ))}
+            {loadingImgUpload ? <MessageBubble text="" imageUrl="" isSender={true} timestamp={new Date()}></MessageBubble> : null}
             <div ref={messagesEndRef} />
           </div>
           <InputBar onSend={handleSendMessage} />
