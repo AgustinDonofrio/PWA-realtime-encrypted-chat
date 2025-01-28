@@ -57,13 +57,6 @@ const InputBar: React.FC<InputBarProps> = ({ onSend }) => {
           onSend("", result)
         }
         console.log(result);
-        // setUploadProgress(0); // Inicializar progreso
-        // const imageUrl = await uploadImage(file, "images", (progress) => {
-        //   setUploadProgress(progress); // Actualizar progreso
-        // });
-        // if (onSendImage) {
-        //   onSendImage(imageUrl); // Llamar al callback para enviar la imagen
-        // }
       } catch (error) {
         console.error("Error uploading image:", error);
       } finally {
@@ -73,7 +66,7 @@ const InputBar: React.FC<InputBarProps> = ({ onSend }) => {
   };
 
   return (
-    <div className="flex items-center gap-2 px-4 py-3 border-t border-gray-700 bg-main-color relative">
+    <div className="flex items-center gap-2 px-4 py-3 bg-main-color relative">
       {/* Botón de subir imagen */}
       <label htmlFor="image-upload" className="text-white text-2xl cursor-pointer">
         <FiImage />
