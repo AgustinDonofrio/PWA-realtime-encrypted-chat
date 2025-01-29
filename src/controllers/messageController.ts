@@ -121,6 +121,39 @@ export const subscribeToMessages = (
   }
 };
 
+export const subscribeToLastMessages = (userId: string, callback: (messages: any[]) => void) => {
+  if (!userId) return () => {};
+
+  const messagesQuery = query(
+    collection(db, "messages"),
+    or(where("to", "==", userId), where("from", "==", userId)), // Ahora escucha tanto enviados como recibidos
+    orderBy("creationDate", "desc"),
+    limit(1) // Solo el último mensaje
+  );
+
+  const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
+    const messages = snapshot.docs.map((doc) => {
+      const data = doc.data();
+        if (data.text) {
+          data.text = decryptMessage(data.text);
+        }
+
+        if (data.imageUrl) {
+          data.imageUrl = decryptMessage(data.imageUrl);
+        }
+
+        return {
+          id: doc.id,
+          ...data,
+        }; 
+    });
+    callback(messages);
+  });
+
+  return unsubscribe;
+};
+
+
 export const sendMessage = async (
   toUser: string,
   message?: string,

@@ -158,7 +158,7 @@ export const updateProfilePicture = async (file: File, userId: string) => {
     }
 
     // Actualizar el campo `profilePicture` en Firestore
-    const userRef = doc(db, "user", userId);
+    const userRef = doc(db, "users", userId);
     await updateDoc(userRef, {
       profilePicture: imageUrl,
     });

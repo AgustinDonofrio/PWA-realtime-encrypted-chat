@@ -4,7 +4,7 @@ import ContactList from "../../components/contacts/ContactList";
 import AddContactModal from "../../components/modal/AddContactModal";
 import { db, auth } from "../../firebase/firebase.config";
 import { getUserByEmail, getLoggedEmail, getUserById, addContactToUser } from "../../controllers/userController";
-import { getLastMessage, getMessagesByUser } from "../../controllers/messageController";
+import { getLastMessage, getMessagesByUser, subscribeToLastMessages } from "../../controllers/messageController";
 import Spinner from "../../components/spinner/Spinner";
 
 const ContactsPage: React.FC = () => {
@@ -30,7 +30,6 @@ const ContactsPage: React.FC = () => {
       }
   
       const userData = await getUserByEmail(loggedEmail);
-  
       if (!userData) {
         console.error("User not found");
         setLoading(false);
@@ -108,9 +107,51 @@ const ContactsPage: React.FC = () => {
 
   useEffect(() => {
     fetchContacts();
-
-
   }, []);
+
+  useEffect(() => {
+    if (!auth.currentUser?.uid) return;
+  
+    const unsubscribe = subscribeToLastMessages(auth.currentUser.uid, async (newMessages) => {
+      setContacts((prevContacts) => {
+        const updatedContacts = [...prevContacts];
+  
+        newMessages.forEach(async (message) => {
+          const existingContact = updatedContacts.find(
+            (contact) => contact.id === message.from || contact.id === message.to
+          );
+  
+          if (existingContact) {
+            // Si el contacto ya existe, actualiza su último mensaje
+            existingContact.lastMessage = message.text || "";
+            existingContact.isFile = message.isFile || false;
+          } else {
+            // Si no existe, obtén sus datos y agrégalo
+            const newUserId = message.from === auth.currentUser?.uid ? message.to : message.from;
+            const userDoc = await getUserById(newUserId);
+  
+            if (userDoc) {
+              updatedContacts.push({
+                id: newUserId,
+                name: userDoc.name || "Unknown",
+                status: userDoc.status || "",
+                profilePicture: userDoc.profilePicture || "",
+                email: userDoc.email || "",
+                lastMessage: message.text || "",
+                isFile: message.isFile || false,
+                isAgended: false,
+              });
+            }
+          }
+        });
+  
+        return [...updatedContacts];
+      });
+    });
+  
+    return () => unsubscribe();
+  }, []);
+  
 
   const handleAddContact = async (contactId: string) => {
     try {
