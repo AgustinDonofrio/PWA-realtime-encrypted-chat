@@ -1,30 +1,10 @@
 import { db, auth } from "../firebase/firebase.config";
-import {
-  doc,
-  getDocs,
-  addDoc,
-  collection,
-  query,
-  onSnapshot,
-  orderBy,
-  where,
-  limit,
-  or,
-  Timestamp,
-} from "firebase/firestore";
-import {
-  getStorage,
-  ref,
-  uploadBytesResumable,
-  getDownloadURL,
-} from "firebase/storage";
-import {
-  mapAuthCodeToMessage,
-  encryptMessage,
-  decryptMessage,
-} from "../helpers/utils";
+import { doc, getDocs, addDoc, collection, query, onSnapshot, orderBy, where, limit, or, Timestamp, startAfter } from "firebase/firestore";
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { mapAuthCodeToMessage, encryptMessage, decryptMessage } from "../helpers/utils";
 
 const storage = getStorage();
+const MESSAGE_PER_PAGE = 30;
 
 export const uploadImage = async (
   file: File,
@@ -86,23 +66,17 @@ export const subscribeToMessages = (
       messagesRef,
       where("to", "in", [auth.currentUser?.uid, userId]),
       where("from", "in", [auth.currentUser?.uid, userId]),
-      orderBy("creationDate", "asc")
+      orderBy("creationDate", "desc"),
+      limit(MESSAGE_PER_PAGE)
     );
 
     // Escuchar los cambios en tiempo real
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const newMessages = snapshot.docs.map((doc) => {
         const data = doc.data();
-        if (data.text) {
-          data.text = decryptMessage(data.text);
-        }
-
-        if (data.imageUrl) {
-          data.imageUrl = decryptMessage(data.imageUrl);
-        }
         return {
-          text: data.text || "",
-          imageUrl: data.imageUrl || null,
+          text: data.text ? decryptMessage(data.text) : "",
+          imageUrl: data.imageUrl ? decryptMessage(data.imageUrl) : null,
           isSender: data.from === auth.currentUser?.uid, // Verificar si el mensaje fue enviado por el usuario actual
           timestamp: data.creationDate?.toDate() || new Date(), // Convertir Timestamp a Date
         };
@@ -124,8 +98,10 @@ export const subscribeToMessages = (
 export const subscribeToLastMessages = (userId: string, callback: (messages: any[]) => void) => {
   if (!userId) return () => {};
 
+  const messagesRef = collection(db, "messages");
+
   const messagesQuery = query(
-    collection(db, "messages"),
+    messagesRef,
     or(where("to", "==", userId), where("from", "==", userId)), // Ahora escucha tanto enviados como recibidos
     orderBy("creationDate", "desc"),
     limit(1) // Solo el último mensaje
@@ -201,6 +177,11 @@ export const getLastMessage = async (contactId: string) => {
       throw new Error("User is not authenticated");
     }
 
+    if (!contactId) {
+      console.error("Contact ID is required");
+      return null;
+    }
+
     const messagesRef = collection(db, "messages");
 
     const q = query(
@@ -229,6 +210,84 @@ export const getLastMessage = async (contactId: string) => {
     console.error("Error fetching last message:", error);
     return null;
   }
+};
+
+export const fetchMessagesByPage = async (userId: string, lastVisible: any) => {
+  try {
+    const messagesRef = collection(db, "messages");
+    let queryConstraints: any[] = [
+      where("to", "in", [auth.currentUser?.uid, userId]),
+      where("from", "in", [auth.currentUser?.uid, userId]),
+      orderBy("creationDate", "desc"),
+      limit(MESSAGE_PER_PAGE),
+    ];
+
+    if (lastVisible) {
+      queryConstraints.push(startAfter(lastVisible)); // Continuar desde el último mensaje visible
+    }
+
+    const q = query(messagesRef, ...queryConstraints);
+    const querySnapshot = await getDocs(q);
+
+    const messages = querySnapshot.docs.map((doc) => {
+      const data = doc.data();
+      if (data.text) {
+        data.text = decryptMessage(data.text);
+      }
+
+      if (data.imageUrl) {
+        data.imageUrl = decryptMessage(data.imageUrl);
+      }
+
+      return {
+        text: data.text || "",
+        imageUrl: data.imageUrl || null,
+        isSender: data.from === auth.currentUser?.uid, 
+        timestamp: data.creationDate?.toDate() || new Date(),
+      };
+    });
+
+    const lastVisibleDoc = querySnapshot.docs[querySnapshot.docs.length - 1]; // Último mensaje de la página
+
+    return {
+      messages,
+      lastVisible: lastVisibleDoc,
+    };
+  } catch (error) {
+    console.error("Error fetching messages by page:", error);
+    return { messages: [], lastVisible: null };
+  }
+};
+
+
+export const getPreviousMessages = async (userId: string, lastVisible: any) => {
+  if (!auth.currentUser?.uid) return [];
+
+  const messagesRef = collection(db, "messages");
+
+  const q = query(
+    messagesRef,
+    where("to", "in", [auth.currentUser.uid, userId]),
+    where("from", "in", [auth.currentUser.uid, userId]),
+    orderBy("creationDate", "desc"),
+    startAfter(lastVisible), // Pagina los resultados
+    limit(MESSAGE_PER_PAGE)
+  );
+
+  const querySnapshot = await getDocs(q);
+
+  const messages = querySnapshot.docs.map((doc) => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      text: data.text ? decryptMessage(data.text) : "",
+      imageUrl: data.imageUrl ? decryptMessage(data.imageUrl) : null,
+      isSender: data.from === auth.currentUser?.uid,
+      timestamp: data.creationDate?.toDate() || new Date(),
+    };
+  });
+
+  return messages;
 };
 
 export const getMessagesByUser = async (userId: string) => {

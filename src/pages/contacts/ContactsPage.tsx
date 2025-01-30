@@ -65,7 +65,8 @@ const ContactsPage: React.FC = () => {
 
       // Obtener datos para cada usuario
       const contactsData = await Promise.all(
-        Array.from(allUserIds).map(async (userId) => {
+        Array.from(allUserIds).filter((userId) => !!userId).
+          map(async (userId) => {
           const isAgended = agendedContacts[userId] !== undefined;
           const lastMessage = await getLastMessage(userId);
   
