@@ -7,6 +7,7 @@ import {
   signOut,
 } from "firebase/auth";
 import { mapAuthCodeToMessage } from "../helpers/utils";
+import { deleteFromIndexedDB, saveToIndexedDB } from "./indexDbHelpers";
 
 interface User {
   name?: string;
@@ -59,6 +60,7 @@ export const loginAccount = async (userData: User): Promise<AuthResponse> => {
     const user = userLogged.user;
     response.success = true;
     response.msg = "User logged successfuly";
+    saveToIndexedDB("auth", user);
     return response;
   } catch (error: any) {
     console.log("[X] Login user error ->", error);
@@ -88,6 +90,7 @@ export const loginWithGoogle = async (): Promise<AuthResponse> => {
     response.google = userCredential;
     response.success = true;
     response.msg = "Login with Google successful";
+    saveToIndexedDB("auth", userCredential);
     // Devuelve los detalles del usuario autenticado
     return response;
   } catch (error: any) {
@@ -105,6 +108,7 @@ export const logout = async (): Promise<AuthResponse> => {
   };
   try {
     await signOut(auth);
+    deleteFromIndexedDB("auth");
     return response;
   } catch (err: any) {
     response.success = false;

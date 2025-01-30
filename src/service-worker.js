@@ -34,6 +34,21 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
+// window.addEventListener("online", () => {
+//   console.log(
+//     "[Service Worker] Conexión restablecida. Sincronizando mensajes..."
+//   );
+//   getFromIndexedDB("messages").then((messages) => {
+//     messages.forEach((msg) => {
+//       fetch("/api/sendMessage", {
+//         method: "POST",
+//         body: JSON.stringify(msg),
+//         headers: { "Content-Type": "application/json" },
+//       }).then(() => deleteFromIndexedDB("messages"));
+//     });
+//   });
+// });
+
 // Evento: Fetch
 self.addEventListener("fetch", (event) => {
   console.log("The service worker is serving the asset.");
