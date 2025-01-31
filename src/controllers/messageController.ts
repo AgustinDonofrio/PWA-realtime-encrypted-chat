@@ -66,8 +66,8 @@ export const subscribeToMessages = (
       messagesRef,
       where("to", "in", [auth.currentUser?.uid, userId]),
       where("from", "in", [auth.currentUser?.uid, userId]),
-      orderBy("creationDate", "desc"),
-      limit(MESSAGE_PER_PAGE)
+      orderBy("creationDate", "asc"),
+      //limit(MESSAGE_PER_PAGE)
     );
 
     // Escuchar los cambios en tiempo real
@@ -103,7 +103,7 @@ export const subscribeToLastMessages = (userId: string, callback: (messages: any
   const messagesQuery = query(
     messagesRef,
     or(where("to", "==", userId), where("from", "==", userId)), // Ahora escucha tanto enviados como recibidos
-    orderBy("creationDate", "desc"),
+    orderBy("creationDate", "asc"),
     limit(1) // Solo el último mensaje
   );
 
@@ -188,7 +188,7 @@ export const getLastMessage = async (contactId: string) => {
       messagesRef,
       where("to", "in", [auth.currentUser.uid, contactId]),
       where("from", "in", [auth.currentUser.uid, contactId]),
-      orderBy("creationDate", "desc"),
+      orderBy("creationDate", "asc"),
       limit(1)
     );
 
@@ -218,8 +218,8 @@ export const fetchMessagesByPage = async (userId: string, lastVisible: any) => {
     let queryConstraints: any[] = [
       where("to", "in", [auth.currentUser?.uid, userId]),
       where("from", "in", [auth.currentUser?.uid, userId]),
-      orderBy("creationDate", "desc"),
-      limit(MESSAGE_PER_PAGE),
+      orderBy("creationDate", "asc"),
+      //limit(MESSAGE_PER_PAGE),
     ];
 
     if (lastVisible) {
@@ -242,7 +242,7 @@ export const fetchMessagesByPage = async (userId: string, lastVisible: any) => {
       return {
         text: data.text || "",
         imageUrl: data.imageUrl || null,
-        isSender: data.from === auth.currentUser?.uid, 
+        isSender: data.from === auth.currentUser?.uid,
         timestamp: data.creationDate?.toDate() || new Date(),
       };
     });
@@ -269,9 +269,9 @@ export const getPreviousMessages = async (userId: string, lastVisible: any) => {
     messagesRef,
     where("to", "in", [auth.currentUser.uid, userId]),
     where("from", "in", [auth.currentUser.uid, userId]),
-    orderBy("creationDate", "desc"),
+    orderBy("creationDate", "asc"),
     startAfter(lastVisible), // Pagina los resultados
-    limit(MESSAGE_PER_PAGE)
+    //limit(MESSAGE_PER_PAGE)
   );
 
   const querySnapshot = await getDocs(q);

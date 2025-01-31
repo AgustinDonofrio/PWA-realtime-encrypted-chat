@@ -23,7 +23,6 @@ const ChatPage: React.FC = () => {
     name: "",
     imageUrl: "",
   });
-  const messagesEndRef = useRef<HTMLDivElement>(null); //Para scroll automático
   const [loading, setLoading] = useState(true);
   const [loadingImgUpload, setLoadingImgUpload] = useState(false);
   const [isSnackbarOpen, setIsSnackbarOpen] = useState<boolean>(false);
@@ -31,7 +30,8 @@ const ChatPage: React.FC = () => {
   const [snackbarType, setSnackbarType] = useState<'success' | 'error' | 'info'>('info');
   const [lastVisibleMessage, setLastVisibleMessage] = useState<any>(null);
   const [loadingMore, setLoadingMore] = useState(false);
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null); // Para scroll automático
+  const chatContainerRef = useRef<HTMLDivElement>(null); // Para cargar más mensajes
 
   const showSnackbar = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
     setSnackbarMessage(message);
@@ -43,9 +43,11 @@ const ChatPage: React.FC = () => {
     setIsSnackbarOpen(false);
   };
 
-  // Scroll automático al final
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  const handleImageLoad = () => {
+    // Ejecutar el scroll automático después de que la imagen se haya cargado
+    setTimeout(() => {
+      chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
   };
 
   // Obtener los datos del usuario con el que se está chateando
@@ -70,17 +72,16 @@ const ChatPage: React.FC = () => {
 
     fetchChatUser();
   }, [userId]);
-
-  // Obtener mensajes en tiempo real y hacer scroll al recibir un nuevo mensaje
+  
+  // Obtener mensajes en tiempo real
   useEffect(() => {
     if (!userId) return;
 
     const unsubscribe = subscribeToMessages(userId, (newMessages) => {
       if (newMessages.length > 0) { 
-        setLastVisibleMessage(newMessages[0]); // Guardar el último mensaje visible
+        setLastVisibleMessage(newMessages[newMessages.length - 1]); // Guardar el último mensaje visible
       }
       setMessages(newMessages);
-      scrollToBottom(); // Hacer scroll al final después de recibir un mensaje
     });
 
     return () => {
@@ -89,6 +90,16 @@ const ChatPage: React.FC = () => {
       }
     };
   }, [userId]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  useEffect(() => {
+    if (loadingImgUpload) {
+      chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [loadingImgUpload, messages]);
 
   const loadMoreMessages = async () => {
     if (!userId || !lastVisibleMessage || loadingMore) return;
@@ -107,14 +118,14 @@ const ChatPage: React.FC = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      if (!messagesContainerRef.current) return;
+      if (!chatContainerRef.current) return;
 
-      if (messagesContainerRef.current.scrollTop === 0) {
+      if (chatContainerRef.current.scrollTop === 0) {
         loadMoreMessages(); // Cargar más mensajes si está en la parte superior
       }
     };
 
-    const container = messagesContainerRef.current;
+    const container = chatContainerRef.current;
     container?.addEventListener("scroll", handleScroll);
 
     return () => {
@@ -135,7 +146,6 @@ const ChatPage: React.FC = () => {
           imageUrl = imgResult;
         }
         setLoadingImgUpload(false);
-        scrollToBottom();
       }
 
       if (imageFile && imageUrl.length == 0) {
@@ -144,7 +154,6 @@ const ChatPage: React.FC = () => {
       }
 
       await sendMessage(userId, message, imageUrl);
-      scrollToBottom();
     }
   };
 
@@ -154,7 +163,7 @@ const ChatPage: React.FC = () => {
     if (!groups[date]) {
       groups[date] = [];
     }
-    groups[date].unshift(msg);
+    groups[date].push(msg);
 
     return groups;
   }, {});
@@ -177,8 +186,9 @@ const ChatPage: React.FC = () => {
       {!loading ? (
         <>
           <div 
-            ref={messagesContainerRef}
+            ref={chatContainerRef}
             className="flex-1 h-full overflow-y-auto px-4 py-3 space-y-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800">
+            {loadingMore && <div className="text-center text-gray-400">Loading messages...</div>}
             {Object.entries(groupedMessages).map(([date, messages]) => (
               <div key={date}>
                 {/* Fecha como separador */}
@@ -190,19 +200,19 @@ const ChatPage: React.FC = () => {
                     imageUrl={msg.imageUrl}
                     isSender={msg.isSender}
                     timestamp={msg.timestamp}
+                    onImageLoad={handleImageLoad}
                   />
                 ))}
               </div>
             ))}
-            {/* {loadingImgUpload ? <MessageBubble text="" imageUrl="" isSender={true} timestamp={new Date()}></MessageBubble> : null} */}
-            {loadingImgUpload && <MessageBubble text="" imageUrl="" isSender={true} timestamp={new Date()} />}
-            <div ref={messagesEndRef} />
+            {loadingImgUpload ? <MessageBubble text="" imageUrl="" isSender={true} timestamp={new Date()}></MessageBubble> : null}
+            <div ref={chatEndRef} />
           </div>
           
           {/* Barra de entrada */}
           <InputBar onSend={handleSendMessage} />
         </>
-      ) : (<><LoadingPage /></>)}
+      ) : (<LoadingPage />)}
 
       {isSnackbarOpen && (
         <Snackbar

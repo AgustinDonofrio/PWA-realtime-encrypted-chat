@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { formatTime } from "../../helpers/utils";
 import Spinner from "../spinner/Spinner";
 
@@ -7,9 +7,19 @@ interface MessageBubbleProps {
   imageUrl?: string;
   isSender: boolean;
   timestamp: Date;
+  onImageLoad?: () => void;
 }
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ text, imageUrl, isSender, timestamp }) => {
+const MessageBubble: React.FC<MessageBubbleProps> = ({ text, imageUrl, isSender, timestamp, onImageLoad }) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  const handleImageLoad = () => {
+    setImageLoaded(true);
+    if (onImageLoad) {
+      onImageLoad();
+    }
+  };
+
   return (
     <div
       className={`relative flex flex-col min-w-[3.5rem] max-w-[78%] px-3 py-2 rounded-lg shadow-md break-words w-fit mb-2 ${isSender
@@ -19,7 +29,10 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ text, imageUrl, isSender,
     >
       {imageUrl?.length == 0 && text?.length == 0 ? <Spinner color="#A3D4FF"></Spinner> : null}
       {/* Mostrar contenido (texto o imagen) */}
-      {imageUrl ? <img className="max-w-sm max-h-sm" src={imageUrl} alt="image" /> : text}
+      {imageUrl 
+        ? <img className="max-w-sm max-h-sm" src={imageUrl} alt="image" onLoad={handleImageLoad}/> 
+        : text
+      }
 
       {/* Mostrar hora en la esquina inferior derecha */}
       <div className="flex justify-end mt-1">
