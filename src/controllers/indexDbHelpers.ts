@@ -15,30 +15,33 @@ const openDatabase = (): Promise<IDBDatabase> => {
       if (!db.objectStoreNames.contains("messages")) {
         db.createObjectStore("messages", {
           keyPath: "id",
-          autoIncrement: true,
         });
       }
       if (!db.objectStoreNames.contains("contacts")) {
         db.createObjectStore("contacts", {
           keyPath: "id",
-          autoIncrement: true,
         });
       }
     };
 
     request.onsuccess = (event: any) => {
-      console.log("[✔] Base de datos abierta con éxito");
+      console.log("[✔] DB opened successfuly");
       resolve(event.target.result);
     };
 
     request.onerror = (event: any) => {
-      console.error("[X] Error al abrir la base de datos", event.target.error);
+      console.error("[X] Error to get DB", event.target.error);
       reject(event.target.error);
     };
   });
 };
 
 export const saveToIndexedDB = async (storeName: string, data: any) => {
+  if (!data.id) {
+    console.error("Error: data needs id", data);
+    return;
+  }
+
   const db = await openDatabase();
   const transaction = db.transaction(storeName, "readwrite");
   const store = transaction.objectStore(storeName);
@@ -47,7 +50,7 @@ export const saveToIndexedDB = async (storeName: string, data: any) => {
 
 export const getFromIndexedDB = (storeName: string): Promise<any[]> => {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(CHAT_KEY, 1);
+    const request = indexedDB.open(DB_NAME, 1);
     request.onsuccess = (event: any) => {
       const db = event.target.result;
       const transaction = db.transaction(storeName, "readonly");
@@ -60,7 +63,7 @@ export const getFromIndexedDB = (storeName: string): Promise<any[]> => {
 };
 
 export const deleteFromIndexedDB = (storeName: string) => {
-  const request = indexedDB.open(CHAT_KEY, 1);
+  const request = indexedDB.open(DB_NAME, 1);
   request.onsuccess = (event: any) => {
     const db = event.target.result;
     const transaction = db.transaction(storeName, "readwrite");

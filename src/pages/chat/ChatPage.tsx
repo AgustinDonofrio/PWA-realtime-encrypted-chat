@@ -45,9 +45,7 @@ const ChatPage: React.FC = () => {
 
   const handleImageLoad = () => {
     // Ejecutar el scroll automático después de que la imagen se haya cargado
-    setTimeout(() => {
-      chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 100);
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   // Obtener los datos del usuario con el que se está chateando
@@ -72,13 +70,13 @@ const ChatPage: React.FC = () => {
 
     fetchChatUser();
   }, [userId]);
-  
+
   // Obtener mensajes en tiempo real
   useEffect(() => {
     if (!userId) return;
 
     const unsubscribe = subscribeToMessages(userId, (newMessages) => {
-      if (newMessages.length > 0) { 
+      if (newMessages.length > 0) {
         setLastVisibleMessage(newMessages[newMessages.length - 1]); // Guardar el último mensaje visible
       }
       setMessages(newMessages);
@@ -95,6 +93,8 @@ const ChatPage: React.FC = () => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+
+  //Scroll para carga inicial de imagen
   useEffect(() => {
     if (loadingImgUpload) {
       chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -103,16 +103,16 @@ const ChatPage: React.FC = () => {
 
   const loadMoreMessages = async () => {
     if (!userId || !lastVisibleMessage || loadingMore) return;
-  
+
     setLoadingMore(true);
-  
+
     const { messages: olderMessages, lastVisible } = await fetchMessagesByPage(userId, lastVisibleMessage);
-  
+
     if (olderMessages.length > 0) {
       setMessages((prevMessages) => [...prevMessages, ...olderMessages]);
       setLastVisibleMessage(lastVisible); // Actualizar el último mensaje visible
     }
-  
+
     setLoadingMore(false);
   };
 
@@ -185,7 +185,7 @@ const ChatPage: React.FC = () => {
       {/* Lista de mensajes */}
       {!loading ? (
         <>
-          <div 
+          <div
             ref={chatContainerRef}
             className="flex-1 h-full overflow-y-auto px-4 py-3 space-y-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800">
             {loadingMore && <div className="text-center text-gray-400">Loading messages...</div>}
@@ -208,7 +208,7 @@ const ChatPage: React.FC = () => {
             {loadingImgUpload ? <MessageBubble text="" imageUrl="" isSender={true} timestamp={new Date()}></MessageBubble> : null}
             <div ref={chatEndRef} />
           </div>
-          
+
           {/* Barra de entrada */}
           <InputBar onSend={handleSendMessage} />
         </>
