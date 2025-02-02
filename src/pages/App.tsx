@@ -4,11 +4,15 @@ import Login from "./login/Login";
 import Register from "./register/Register";
 import ContactsPage from "./contacts/ContactsPage";
 import ChatPage from "./chat/ChatPage";
+import DesktopPage from "./desktop/DesktopPage";
 import UserSettings from "./profile/UserSettings";
 import PublicRoute from "../components/routes/PublicRoute";
 import PrivateRoute from "../components/routes/PrivateRoute";
 
 const App: React.FC = () => {
+  const isDesktop = window.innerWidth > 768;
+  console.log(isDesktop);
+
   return (
     <Router>
       <Routes>
@@ -26,7 +30,7 @@ const App: React.FC = () => {
 
         <Route path="/contacts" element={
           <PrivateRoute>
-            <ContactsPage />
+            {isDesktop ? <DesktopPage /> : <ContactsPage />}
           </PrivateRoute>
         } />
 

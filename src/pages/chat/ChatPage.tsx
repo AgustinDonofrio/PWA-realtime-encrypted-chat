@@ -16,8 +16,13 @@ const DateSeparator: React.FC<{ date: string }> = ({ date }) => (
   </div>
 );
 
-const ChatPage: React.FC = () => {
-  const { userId } = useParams();
+interface ChatPageProps {
+  userId?: string; // Recibir userId como prop
+}
+
+const ChatPage: React.FC<ChatPageProps> = ({ userId }) => {
+  const { userId: userIdFromParams } = useParams<{ userId: string }>();
+  const finalUserId = userId || userIdFromParams; // Usa el de props (para mobile) o el de params (para desktop)
   const [messages, setMessages] = useState<{ text?: string; imageUrl?: string; isSender: boolean, timestamp: Date }[]>([]);
   const [chatUser, setChatUser] = useState<{ name: string; imageUrl: string }>({
     name: "",
@@ -52,14 +57,14 @@ const ChatPage: React.FC = () => {
 
   // Obtener los datos del usuario con el que se está chateando
   useEffect(() => {
-    if (!userId) return;
+    if (!finalUserId) return;
 
     const fetchChatUser = async () => {
       try {
-        const userData: any = await getUserById(userId);
+        const userData: any = await getUserById(finalUserId);
         if (userData) {
           setChatUser({
-            name: userData.name || "Unknown User",
+            name: userData.name,
             imageUrl: userData.profilePicture || "",
           });
         }
@@ -71,13 +76,13 @@ const ChatPage: React.FC = () => {
     };
 
     fetchChatUser();
-  }, [userId]);
+  }, [finalUserId]);
   
   // Obtener mensajes en tiempo real
   useEffect(() => {
-    if (!userId) return;
+    if (!finalUserId) return;
 
-    const unsubscribe = subscribeToMessages(userId, (newMessages) => {
+    const unsubscribe = subscribeToMessages(finalUserId, (newMessages) => {
       if (newMessages.length > 0) { 
         setLastVisibleMessage(newMessages[newMessages.length - 1]); // Guardar el último mensaje visible
       }
@@ -89,7 +94,7 @@ const ChatPage: React.FC = () => {
         unsubscribe();
       }
     };
-  }, [userId]);
+  }, [finalUserId]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -102,11 +107,11 @@ const ChatPage: React.FC = () => {
   }, [loadingImgUpload, messages]);
 
   const loadMoreMessages = async () => {
-    if (!userId || !lastVisibleMessage || loadingMore) return;
+    if (!finalUserId || !lastVisibleMessage || loadingMore) return;
   
     setLoadingMore(true);
   
-    const { messages: olderMessages, lastVisible } = await fetchMessagesByPage(userId, lastVisibleMessage);
+    const { messages: olderMessages, lastVisible } = await fetchMessagesByPage(finalUserId, lastVisibleMessage);
   
     if (olderMessages.length > 0) {
       setMessages((prevMessages) => [...prevMessages, ...olderMessages]);
@@ -131,12 +136,12 @@ const ChatPage: React.FC = () => {
     return () => {
       container?.removeEventListener("scroll", handleScroll);
     };
-  }, [userId, lastVisibleMessage]);
+  }, [finalUserId, lastVisibleMessage]);
 
 
   const handleSendMessage = async (message: string, imageFile?: File) => {
     let imageUrl = "";
-    if (userId) {
+    if (finalUserId) {
       if (imageFile) {
         setLoadingImgUpload(true);
 
@@ -153,7 +158,7 @@ const ChatPage: React.FC = () => {
         return;
       }
 
-      await sendMessage(userId, message, imageUrl);
+      await sendMessage(finalUserId, message, imageUrl);
     }
   };
 

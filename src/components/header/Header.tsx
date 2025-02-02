@@ -6,9 +6,10 @@ import { logout } from "../../controllers/authController";
 
 interface HeaderProps {
   title: string;
-  leftButton?: "back";
+  leftButton?: "back" | "logo";
   rightButton?: "settings" | "logout" | "profile"; 
   profileImageUrl?: string; // Imagen de perfil (solo relevante si el botón derecho es "profile")
+  renderBottomLine?: boolean;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -16,6 +17,7 @@ const Header: React.FC<HeaderProps> = ({
   leftButton,
   rightButton,
   profileImageUrl,
+  renderBottomLine = true,
 }) => {
   const navigate = useNavigate();
   const [showConfirmLogout, setShowConfirmLogout] = useState(false); // Estado para mostrar u ocultar el cartel de confirmación
@@ -42,7 +44,7 @@ const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 bg-main-color border-b-2 border-gray-600">
+    <div className={`flex items-center justify-between px-4 py-3 bg-main-color ${renderBottomLine ? "border-b-2" : ""} border-gray-600`}>
       {/* Botón izquierdo */}
       {leftButton === "back" && (
         <button
@@ -51,6 +53,14 @@ const Header: React.FC<HeaderProps> = ({
         >
           <FiArrowLeft className="text-white bg-main-color" />
         </button>
+      )}
+
+      {leftButton === "logo" && (
+        <img
+          src="/images/logo.png"
+          alt="Logo"
+          className="w-10 h-10 rounded-full"
+        />
       )}
 
       {/* Título */}

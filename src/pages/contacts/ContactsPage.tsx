@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Header from "../../components/header/Header";
 import ContactList from "../../components/contacts/ContactList";
 import AddContactModal from "../../components/modal/AddContactModal";
@@ -7,7 +8,12 @@ import { getUserByEmail, getLoggedEmail, getUserById, addContactToUser } from ".
 import { getLastMessage, getMessagesByUser, subscribeToLastMessages } from "../../controllers/messageController";
 import Spinner from "../../components/spinner/Spinner";
 
-const ContactsPage: React.FC = () => {
+interface ContactsPageProps {
+  onContactClick?: (contactId: string) => void;
+}
+
+const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick }) => {
+  const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [contacts, setContacts] = useState<
     { name: string; email: string; status: string; profilePicture: string; id: string; lastMessage: string, isFile: boolean, isAgended?: boolean }[]
@@ -17,6 +23,14 @@ const ContactsPage: React.FC = () => {
   >([]);
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
+
+  const handleContactClick = (contactId: string) => {
+  if (onContactClick !== undefined) {
+      onContactClick(contactId); // Llamar a la función del padre (Desktop)
+    } else {
+      navigate(`/chat/${contactId}`); // Navegar a la página de chat (Mobile)
+    }
+  };
 
   const fetchContacts = async () => {
     try {
@@ -203,6 +217,7 @@ const ContactsPage: React.FC = () => {
             onAddContact={handleAddContact}
             withoutContactAction={() => setShowModal(true)}
             onSearch={(text) => setSearchText(text)}
+            onContactClick={handleContactClick}
           />
           {contacts.length > 0 && (
             <button
@@ -222,8 +237,9 @@ const ContactsPage: React.FC = () => {
               onClose={() => setShowModal(false)}
               reloadContactList={fetchContacts}
             />
-          )}</>)}
-
+          )}
+        </>
+      )}
     </div>
   );
 };
