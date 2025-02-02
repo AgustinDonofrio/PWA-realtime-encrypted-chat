@@ -1,14 +1,5 @@
 import { db, auth } from "../firebase/firebase.config";
-import {
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
-  collection,
-  query,
-  getDocs,
-  where,
-} from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, collection, query, getDocs, where, onSnapshot } from "firebase/firestore";
 import { mapAuthCodeToMessage } from "../helpers/utils";
 import { uploadToCloudinary } from "./cloudinaryController";
 
@@ -175,5 +166,25 @@ export const getLoggedEmail = (): string | null | undefined => {
     return auth.currentUser?.email;
   } catch (err: any) {
     return null;
+  }
+};
+
+export const subscribeToContacts = (userId: string, callback: (contacts: { [key: string]: any }) => void) => {
+  try {
+    const userRef = doc(db, "users", userId);
+
+    // Escuchar cambios en el documento del usuario
+    const unsubscribe = onSnapshot(userRef, (doc) => {
+      if (doc.exists()) {
+        const userData = doc.data();
+        const contacts = userData.contacts || {}; // Obtener los contactos del usuario
+        callback(contacts); // Llamar al callback con los contactos actualizados
+      }
+    });
+
+    return unsubscribe; // Retornar la función para desuscribirse
+  } catch (error) {
+    console.error("Error subscribing to contacts:", error);
+    throw error;
   }
 };

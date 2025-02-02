@@ -27,7 +27,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ text, imageUrl, isSender,
         : "mr-auto bg-steel text-white"
         }`}
     >
-      {imageUrl?.length == 0 && text?.length == 0 ? <Spinner color="#A3D4FF"></Spinner> : null}
+      {imageUrl?.length == 0 && text?.length == 0 ? <Spinner color="#A3D4FF" /> : null}
       {/* Mostrar contenido (texto o imagen) */}
       {imageUrl 
         ? <img className="max-w-sm max-h-sm" src={imageUrl} alt="image" onLoad={handleImageLoad}/> 

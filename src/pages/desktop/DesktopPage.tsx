@@ -18,13 +18,21 @@ const DesktopPage: React.FC = () => {
       </div>
 
       {/* Ventana de chat */}
-      <div className="w-full bg-main-color flex flex-col">
+      <div className="w-full bg-main-color flex flex-col items-center justify-center relative">
         {selectedContact ? (
           <ChatPage userId={selectedContact} />
         ) : (
-          <div className="text-main-gray flex items-center justify-center h-full">
-            <p className="text-2xl">Welcome to BlueCrypt!</p>
-            <CiLock className="text-gray-500" /> <span className="justify-center text-sm"> Your personal messages are end-to-end encrypted.</span>
+          <div className="flex flex-col items-center text-center">
+            <h1 className="text-3xl text-gray-300 font-semibold">
+              Welcome to <span className="text-blue-500">BlueCrypt </span>!
+            </h1>
+            <p className="text-lg text-gray-400 mt-2 max-w-md">
+              Start a new chat or add contacts to begin messaging.
+            </p>
+            <div className="absolute bottom-5 flex items-center text-sm text-gray-500">
+              <CiLock className="text-gray-500 mr-1" /> 
+              <span className="justify-center text-sm"> Your personal messages are end-to-end encrypted.</span>
+            </div>
           </div>
         )}
       </div>

@@ -4,7 +4,7 @@ import Header from "../../components/header/Header";
 import ContactList from "../../components/contacts/ContactList";
 import AddContactModal from "../../components/modal/AddContactModal";
 import { db, auth } from "../../firebase/firebase.config";
-import { getUserByEmail, getLoggedEmail, getUserById, addContactToUser } from "../../controllers/userController";
+import { getUserByEmail, getLoggedEmail, getUserById, addContactToUser, subscribeToContacts } from "../../controllers/userController";
 import { getLastMessage, getMessagesByUser, subscribeToLastMessages } from "../../controllers/messageController";
 import Spinner from "../../components/spinner/Spinner";
 
@@ -23,6 +23,7 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick }) => {
   >([]);
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
+  const [addingContacts, setAddingContacts] = useState<string[]>([]);
 
   const handleContactClick = (contactId: string) => {
   if (onContactClick !== undefined) {
@@ -32,9 +33,12 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick }) => {
     }
   };
 
-  const fetchContacts = async () => {
+  const fetchContacts = async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) {
+        setLoading(true);
+      }
+      
       const loggedEmail = getLoggedEmail();
   
       if (!loggedEmail) {
@@ -116,7 +120,9 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick }) => {
     } catch (error) {
       console.error("Error obteniendo contactos:", error);
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   };
 
@@ -124,6 +130,7 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick }) => {
     fetchContacts();
   }, []);
 
+  // Suscribirse a los últimos mensajes
   useEffect(() => {
     if (!auth.currentUser?.uid) return;
   
@@ -166,9 +173,33 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick }) => {
   
     return () => unsubscribe();
   }, []);
+
+  // Suscribirse a cambios en los contactos del usuario actual
+  useEffect(() => {
+    if (!auth.currentUser?.uid) return;
+  
+    // Suscribirse a cambios en los contactos del usuario actual
+    const unsubscribeContacts = subscribeToContacts(auth.currentUser.uid, (contacts) => {
+      // Actualizar la lista de contactos en el estado
+      setContacts((prevContacts) => {
+        const updatedContacts = prevContacts.map((contact) => {
+          if (contacts[contact.id]) {
+            // Si el contacto está en la lista actualizada, marcarlo como agendado
+            return { ...contact, isAgended: true };
+          }
+          return contact;
+        });
+        return updatedContacts;
+      });
+    });
+  
+    // Limpiar la suscripción al desmontar el componente
+    return () => unsubscribeContacts();
+  }, [auth.currentUser?.uid]);
   
 
   const handleAddContact = async (contactId: string) => {
+    setAddingContacts(prev => [...prev, contactId]);
     try {
       const userToAdd = await getUserById(contactId);
       if (userToAdd) {
@@ -180,14 +211,15 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick }) => {
           profilePicture: userToAdd.profilePicture,
           contacts: {},
         });
-        await fetchContacts(); // Recargar la lista de contactos
+        await fetchContacts(false);
       }
     } catch (error) {
       console.error("Error adding contact:", error);
+    } finally {
+      setAddingContacts(prev => prev.filter(id => id !== contactId));
     }
   };
 
-  // Filtrar contactos cuando cambia el texto de búsqueda
   useEffect(() => {
     if (!searchText.trim()) {
       setFilteredContacts(contacts);
@@ -218,6 +250,7 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick }) => {
             withoutContactAction={() => setShowModal(true)}
             onSearch={(text) => setSearchText(text)}
             onContactClick={handleContactClick}
+            addingContacts={addingContacts}
           />
           {contacts.length > 0 && (
             <button

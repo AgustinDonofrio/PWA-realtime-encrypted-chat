@@ -11,7 +11,6 @@ import PrivateRoute from "../components/routes/PrivateRoute";
 
 const App: React.FC = () => {
   const isDesktop = window.innerWidth > 768;
-  console.log(isDesktop);
 
   return (
     <Router>

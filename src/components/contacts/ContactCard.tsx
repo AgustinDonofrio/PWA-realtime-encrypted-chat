@@ -1,6 +1,7 @@
 import React from "react";
 import { FaUser, FaPlus, FaBan } from "react-icons/fa";
 import { FaCamera, FaVideo } from "react-icons/fa";
+import Spinner from "../spinner/Spinner";
 
 interface ContactCardProps {
   name: string;
@@ -11,11 +12,12 @@ interface ContactCardProps {
   lastMessage?: string; // Último mensaje enviado o recibido
   isFile?: boolean; // Si el último mensaje es un archivo
   isAgended?: boolean; // Indica si el usuario está en la lista de contactos
+  isAdding?: boolean; // Indica si se está añadiendo el contacto
   onAddContact?: (id: string) => void; // Función para agregar un contacto no agendado
   onClick?: (id: string) => void;
 }
 
-const ContactCard: React.FC<ContactCardProps> = ({ name, email, status, profilePicture, id, lastMessage, isFile, isAgended, onAddContact, onClick }) => {
+const ContactCard: React.FC<ContactCardProps> = ({ name, email, status, profilePicture, id, lastMessage, isFile, isAgended, onAddContact, onClick, isAdding }) => {
 
   return (
     <div
@@ -70,10 +72,11 @@ const ContactCard: React.FC<ContactCardProps> = ({ name, email, status, profileP
               e.stopPropagation(); // Evitar que se active el onClick del contenedor
               onAddContact?.(id);
             }}
-            className="p-2 bg-green-600 text-white rounded-full hover:bg-green-500"
+            className="p-2 bg-green-600 text-white rounded-full hover:bg-green-500 flex items-center justify-center"
             title="Agregar contacto"
+            disabled={isAdding}
           >
-            <FaPlus />
+            {isAdding ? <Spinner size={20} color="#A3D4FF"/> : <FaPlus />}
           </button>
         </div>
       )}

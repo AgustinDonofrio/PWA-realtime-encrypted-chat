@@ -79,7 +79,7 @@ const AddContactModal: React.FC<AddContactModalProps> = ({ onClose, reloadContac
 
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-main-color bg-opacity-80">
+    <div className="absolute inset-0 flex items-center justify-center bg-main-color bg-opacity-80">
       <div ref={modalRef} className="flex flex-col space-y-3 bg-gray-800 p-6 rounded-lg shadow-lg w-96">
         <h2 className="text-lg font-semibold text-center text-white">
           Add a New Contact
@@ -93,7 +93,7 @@ const AddContactModal: React.FC<AddContactModalProps> = ({ onClose, reloadContac
           onChangeAction={(e) => setEmail(e.target.value)}
         />
         <div className="p-2">
-          {loading && <Spinner></Spinner>}
+          {loading && <Spinner />}
           {error && <p className="text-red-500 text-center">{error}</p>}
           {searchResult && !loading && (
             <div className="p-4 bg-gray-700 rounded text-white">

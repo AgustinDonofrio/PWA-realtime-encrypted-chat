@@ -103,7 +103,7 @@ export const subscribeToLastMessages = (userId: string, callback: (messages: any
   const messagesQuery = query(
     messagesRef,
     or(where("to", "==", userId), where("from", "==", userId)), // Ahora escucha tanto enviados como recibidos
-    orderBy("creationDate", "asc"),
+    orderBy("creationDate", "desc"),
     limit(1) // Solo el último mensaje
   );
 
@@ -128,7 +128,6 @@ export const subscribeToLastMessages = (userId: string, callback: (messages: any
 
   return unsubscribe;
 };
-
 
 export const sendMessage = async (
   toUser: string,
