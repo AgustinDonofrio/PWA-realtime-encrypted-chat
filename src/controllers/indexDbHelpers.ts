@@ -50,6 +50,7 @@ export const saveToIndexedDB = async (storeName: string, data: any) => {
 
 export const getFromIndexedDB = (storeName: string): Promise<any[]> => {
   return new Promise((resolve, reject) => {
+    console.log("[x] Getting all resources from ->", storeName);
     const request = indexedDB.open(DB_NAME, 1);
     request.onsuccess = (event: any) => {
       const db = event.target.result;

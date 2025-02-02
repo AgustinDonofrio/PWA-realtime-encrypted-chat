@@ -7,7 +7,7 @@
     "allowJs": false,
     "strict": true, 
     "useDefineForClassFields": true,
-    "lib": ["DOM", "DOM.Iterable", "ESNext", "webworker"],
+    "lib": ["DOM", "DOM.Iterable", "ESNext", "WebWorker"],
     "esModuleInterop": false, 
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true, 
@@ -19,14 +19,13 @@
     "emitDeclarationOnly": true,
     "declaration": true,
     "jsx": "react-jsx",
-    "baseUrl": ".", 
- 
+    "baseUrl": ".",  
   },
   "ts-node": {
     "esm": true,
     "experimentalSpecifierResolution": "node",
   },  
-  "include": ["src", "src/main.tsx", "src/service-worker.js"], 
+  "include": ["src", "src/main.tsx", "src/pages/service-worker.jsrker.js", "public"], 
   "exclude": ["node_modules", "dist"] ,
   "references": [{ "path": "./tsconfig.client.json" }]
 }

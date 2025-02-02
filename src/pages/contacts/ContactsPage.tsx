@@ -6,7 +6,7 @@ import { auth } from "../../firebase/firebase.config";
 import { getUserByEmail, getLoggedEmail, getUserById, addContactToUser } from "../../controllers/userController";
 import { getLastMessage, getMessagesByUser, subscribeToLastMessages } from "../../controllers/messageController";
 import Spinner from "../../components/spinner/Spinner";
-import { saveToIndexedDB } from "../../controllers/indexDbHelpers"
+import { saveToIndexedDB, getFromIndexedDB } from "../../controllers/indexDbHelpers"
 
 const ContactsPage: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
@@ -22,6 +22,17 @@ const ContactsPage: React.FC = () => {
   const fetchContacts = async () => {
     try {
       setLoading(true);
+
+      console.log(navigator.onLine)
+      if (!navigator.onLine) {
+        const offlineContacts = await getFromIndexedDB("contacts");
+        setContacts(offlineContacts);
+        setFilteredContacts(offlineContacts);
+        setLoading(false);
+
+        return;
+      }
+
       const loggedEmail = getLoggedEmail();
 
       if (!loggedEmail) {

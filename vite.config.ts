@@ -6,76 +6,81 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const root = resolve(__dirname, "src");
-
 export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      injectRegister: "auto",
       registerType: "autoUpdate",
       workbox: {
+        cleanupOutdatedCaches: true,
+        navigateFallback: "/index.html",
+        globPatterns: ["**/*.{js,css,html,png,svg,ico,json,ts,tsx}"],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/your-api-domain\.com\/.*$/,
+            urlPattern: /^https:\/\/your-api\.com\/.*$/,
             handler: "NetworkFirst",
             options: {
-              cacheName: "api-cache",
+              cacheName: "pwa-cache",
               expiration: {
                 maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 * 2, // 2 días
+                maxAgeSeconds: 60 * 60 * 24, // Un día
               },
             },
           },
           {
-            urlPattern:
-              /\.(?:html|css|js|json|png|jpg|jpeg|svg|ico|woff|woff2|ttf|otf)$/,
-            handler: "CacheFirst",
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/,
+            handler: "StaleWhileRevalidate",
             options: {
-              cacheName: "static-resources",
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 7, // 1 semana
-              },
+              cacheName: "google-fonts-stylesheets",
             },
           },
         ],
-        navigateFallback: "/index.html",
       },
-      includeAssets: ["favicon.ico"],
+      includeAssets: ["**/*"],
+      devOptions: {
+        enabled: true,
+      },
+      manifestFilename: "manifest.json",
       manifest: {
-        name: "PWA Realtime chat",
-        short_name: "PWA-RC",
-        description: "Progressive Web Application of a Realtime Chat",
-        theme_color: "#ffffff",
-        background_color: "#ffffff",
+        name: "Encrypted Realtime Chat",
+        short_name: "PWA Realtime APP Chat",
+        description: "Progressive Web Application of a realtime chat.",
+        start_url: "/",
         display: "standalone",
+        background_color: "#121417",
+        theme_color: "#121417",
         icons: [
           {
-            src: "/logo192.png",
+            src: "/icon-192x192.png",
             sizes: "192x192",
             type: "image/png",
           },
+        ],
+        screenshots: [
           {
-            src: "/logo512.png",
-            sizes: "512x512",
+            src: "/screenshot_mobile.png", // 📱 Captura para móviles
+            sizes: "390x844",
             type: "image/png",
           },
+          {
+            src: "/screenshot_desktop.png", // 💻 Captura para escritorio
+            sizes: "1440x1024",
+            type: "image/png",
+            form_factor: "wide", // 📌 Necesario para evitar el warning en desktop
+          },
         ],
-      },
-      injectManifest: {
-        globPatterns: ["**/*.{js,css,html,png,jpg}"], // Incluye index.html
       },
     }),
   ],
   base: "/",
-  root,
   build: {
     sourcemap: false,
     outDir: resolve(__dirname, "dist"),
     rollupOptions: {
-      input: resolve(root, "index.html"),
+      input: resolve(__dirname, "index.html"),
       output: {
-        assetFileNames: "[name].[ext]", // Usar un nombre fijo para los archivos estáticos
+        assetFileNames: "[name].[ext]",
         manualChunks: {
           vendor: ["react", "react-dom"],
         },
@@ -84,8 +89,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@": resolve(root),
-      "@client": resolve(__dirname, "src"),
+      "@": resolve(__dirname, "src"),
       "@components": resolve(__dirname, "src/components"),
       "@pages": resolve(__dirname, "src/pages"),
     },
