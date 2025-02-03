@@ -98,7 +98,6 @@ const ChatPage: React.FC = () => {
     }
 
     if (!navigator.onLine) {
-
       fetchMessages().then(() => { setLoading(false); });
     }
 
@@ -118,9 +117,15 @@ const ChatPage: React.FC = () => {
       if (navigator.onLine) {
         if (newMessages.length > 0) {
           setLastVisibleMessage(newMessages[newMessages.length - 1]);
-        }
+          setMessages((prevMessages) => {
+            const mergedMessages = [...prevMessages, ...newMessages];
 
-        setMessages(newMessages);
+            // Eliminar duplicados basados en el ID del mensaje
+            const uniqueMessages = Array.from(new Map(mergedMessages.map(msg => [msg.id, msg])).values());
+
+            return uniqueMessages.sort((a, b) => a.timestamp - b.timestamp);
+          });
+        }
       } else {
         fetchMessages();
       }
@@ -135,14 +140,13 @@ const ChatPage: React.FC = () => {
 
   useEffect(() => {
     const handleOnline = async () => {
-      if (navigator.onLine) {
+      if (navigator.onLine && userId) {
         // Verificar y actualizar el estado de los mensajes no enviados
         const unsentMessages = messages.filter((msg) => !msg.sended && msg.sended !== undefined);
 
         for (const msg of unsentMessages) {
           if (msg.id) {
-            await sendMessageWithId(msg.id, userId || "", msg.text, msg.imageUrl)
-
+            await sendMessageWithId(msg.id, userId, msg.text, msg.imageUrl)
           }
         }
       }
