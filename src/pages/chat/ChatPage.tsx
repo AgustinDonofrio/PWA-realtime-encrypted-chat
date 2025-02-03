@@ -4,11 +4,12 @@ import Header from "../../components/header/Header";
 import MessageBubble from "../../components/chat/MessageBubble";
 import InputBar from "../../components/chat/InputBar";
 import { getUserById } from "../../controllers/userController";
-import { subscribeToMessages, sendMessage, fetchMessagesByPage } from "../../controllers/messageController";
+import { subscribeToMessages, sendMessage, fetchMessagesByPage, updateMessageSendedState, sendMessageWithId } from "../../controllers/messageController";
 import LoadingPage from "../loading/LoadingPage";
 import { formatDate } from "../../helpers/utils";
 import { uploadToCloudinary } from "../../controllers/cloudinaryController";
 import Snackbar from "../../components/snackbar/Snackbar";
+import { saveToIndexedDB, getFromIndexedDB, getFromIndexedDbById } from "../../controllers/indexDbHelpers";
 
 const DateSeparator: React.FC<{ date: string }> = ({ date }) => (
   <div className="text-gray-400 text-sm text-center my-2">
@@ -18,7 +19,7 @@ const DateSeparator: React.FC<{ date: string }> = ({ date }) => (
 
 const ChatPage: React.FC = () => {
   const { userId } = useParams();
-  const [messages, setMessages] = useState<{ text?: string; imageUrl?: string; isSender: boolean, timestamp: Date }[]>([]);
+  const [messages, setMessages] = useState<{ id?: string, from?: string, to?: string, text?: string; imageUrl?: string; isSender: boolean, timestamp: Date, sended?: boolean }[]>([]);
   const [chatUser, setChatUser] = useState<{ name: string; imageUrl: string }>({
     name: "",
     imageUrl: "",
@@ -33,6 +34,7 @@ const ChatPage: React.FC = () => {
   const chatEndRef = useRef<HTMLDivElement>(null); // Para scroll automático
   const chatContainerRef = useRef<HTMLDivElement>(null); // Para cargar más mensajes
 
+
   const showSnackbar = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
     setSnackbarMessage(message);
     setSnackbarType(type);
@@ -45,9 +47,7 @@ const ChatPage: React.FC = () => {
 
   const handleImageLoad = () => {
     // Ejecutar el scroll automático después de que la imagen se haya cargado
-    setTimeout(() => {
-      chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 100);
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   // Obtener los datos del usuario con el que se está chateando
@@ -56,7 +56,13 @@ const ChatPage: React.FC = () => {
 
     const fetchChatUser = async () => {
       try {
-        const userData: any = await getUserById(userId);
+        let userData: any
+        if (navigator.onLine) {
+          userData = await getUserById(userId);
+        } else {
+          userData = await getFromIndexedDbById("contacts", userId);
+        }
+
         if (userData) {
           setChatUser({
             name: userData.name || "Unknown User",
@@ -72,16 +78,57 @@ const ChatPage: React.FC = () => {
 
     fetchChatUser();
   }, [userId]);
-  
+
   // Obtener mensajes en tiempo real
   useEffect(() => {
     if (!userId) return;
 
-    const unsubscribe = subscribeToMessages(userId, (newMessages) => {
-      if (newMessages.length > 0) { 
-        setLastVisibleMessage(newMessages[newMessages.length - 1]); // Guardar el último mensaje visible
+    const fetchMessages = async () => {
+      if (!navigator.onLine) {
+        // Obtener mensajes de IndexedDB
+        const allMessages = await getFromIndexedDB("messages");
+
+        // Filtrar mensajes por el userId correspondiente
+        const filteredMessages = allMessages.filter((msg) => msg.from === userId || msg.to === userId);
+
+        filteredMessages.sort((a, b) => a.timestamp - b.timestamp);
+
+        setMessages(filteredMessages);
       }
-      setMessages(newMessages);
+    }
+
+    if (!navigator.onLine) {
+      fetchMessages().then(() => { setLoading(false); });
+    }
+
+
+    const unsubscribe = subscribeToMessages(userId, async (newMessages) => {
+
+      for (const newMsg of newMessages) {
+
+        saveToIndexedDB("messages", newMsg)
+
+        if (!newMsg.sended && navigator.onLine) {
+          const updateResponse = await updateMessageSendedState(newMsg.id);
+          newMsg.sended = updateResponse.success;
+        }
+      }
+
+      if (navigator.onLine) {
+        if (newMessages.length > 0) {
+          setLastVisibleMessage(newMessages[newMessages.length - 1]);
+          setMessages((prevMessages) => {
+            const mergedMessages = [...prevMessages, ...newMessages];
+
+            // Eliminar duplicados basados en el ID del mensaje
+            const uniqueMessages = Array.from(new Map(mergedMessages.map(msg => [msg.id, msg])).values());
+
+            return uniqueMessages.sort((a, b) => a.timestamp - b.timestamp);
+          });
+        }
+      } else {
+        fetchMessages();
+      }
     });
 
     return () => {
@@ -92,9 +139,31 @@ const ChatPage: React.FC = () => {
   }, [userId]);
 
   useEffect(() => {
+    const handleOnline = async () => {
+      if (navigator.onLine && userId) {
+        // Verificar y actualizar el estado de los mensajes no enviados
+        const unsentMessages = messages.filter((msg) => !msg.sended && msg.sended !== undefined);
+
+        for (const msg of unsentMessages) {
+          if (msg.id) {
+            await sendMessageWithId(msg.id, userId, msg.text, msg.imageUrl)
+          }
+        }
+      }
+    };
+
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [messages]);
+
+  useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  //Scroll para carga inicial de imagen
   useEffect(() => {
     if (loadingImgUpload) {
       chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -103,16 +172,16 @@ const ChatPage: React.FC = () => {
 
   const loadMoreMessages = async () => {
     if (!userId || !lastVisibleMessage || loadingMore) return;
-  
+
     setLoadingMore(true);
-  
+
     const { messages: olderMessages, lastVisible } = await fetchMessagesByPage(userId, lastVisibleMessage);
-  
+
     if (olderMessages.length > 0) {
       setMessages((prevMessages) => [...prevMessages, ...olderMessages]);
       setLastVisibleMessage(lastVisible); // Actualizar el último mensaje visible
     }
-  
+
     setLoadingMore(false);
   };
 
@@ -185,7 +254,7 @@ const ChatPage: React.FC = () => {
       {/* Lista de mensajes */}
       {!loading ? (
         <>
-          <div 
+          <div
             ref={chatContainerRef}
             className="flex-1 h-full overflow-y-auto px-4 py-3 space-y-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800">
             {loadingMore && <div className="text-center text-gray-400">Loading messages...</div>}
@@ -193,22 +262,25 @@ const ChatPage: React.FC = () => {
               <div key={date}>
                 {/* Fecha como separador */}
                 <DateSeparator date={date} />
-                {messages.map((msg, index) => (
-                  <MessageBubble
-                    key={index}
-                    text={msg.text}
-                    imageUrl={msg.imageUrl}
-                    isSender={msg.isSender}
-                    timestamp={msg.timestamp}
-                    onImageLoad={handleImageLoad}
-                  />
-                ))}
+                {messages.map((msg, index) => {
+                  return (
+                    <MessageBubble
+                      key={index}
+                      text={msg.text}
+                      imageUrl={msg.imageUrl}
+                      isSender={msg.isSender}
+                      timestamp={msg.timestamp}
+                      withConnection={msg.isSender ? msg.sended : true}
+                      onImageLoad={handleImageLoad}
+                    />
+                  )
+                })}
               </div>
             ))}
-            {loadingImgUpload ? <MessageBubble text="" imageUrl="" isSender={true} timestamp={new Date()}></MessageBubble> : null}
+            {loadingImgUpload ? <MessageBubble text="" imageUrl="" isSender={true} timestamp={new Date()} withConnection={true}></MessageBubble> : null}
             <div ref={chatEndRef} />
           </div>
-          
+
           {/* Barra de entrada */}
           <InputBar onSend={handleSendMessage} />
         </>

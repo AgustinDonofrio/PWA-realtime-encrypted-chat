@@ -9,7 +9,7 @@
     "jsx": "react",
     "composite": true,
     "moduleResolution": "node", 
-    "types": ["vite/client"],
+    "types": ["vite/client",  "vite-plugin-pwa/client"],
     "lib": ["DOM", "ESNext", "WebWorker"],
     "outDir": "dist",
     "allowSyntheticDefaultImports": true,
@@ -17,7 +17,7 @@
     "emitDeclarationOnly": true,
     "declaration": true,
   },
-  "include": ["src/**/*", "vite.config.ts", "src/main.tsx"]
+  "include": ["src/**/*", "vite.config.ts", "src/main.tsx", "public"]
 }
   
   

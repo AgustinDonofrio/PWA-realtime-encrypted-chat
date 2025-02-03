@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 import Header from "../../components/header/Header";
 import ContactList from "../../components/contacts/ContactList";
 import AddContactModal from "../../components/modal/AddContactModal";
-import { db, auth } from "../../firebase/firebase.config";
+import { auth } from "../../firebase/firebase.config";
 import { getUserByEmail, getLoggedEmail, getUserById, addContactToUser } from "../../controllers/userController";
 import { getLastMessage, getMessagesByUser, subscribeToLastMessages } from "../../controllers/messageController";
 import Spinner from "../../components/spinner/Spinner";
+import { saveToIndexedDB, getFromIndexedDB } from "../../controllers/indexDbHelpers"
 
 const ContactsPage: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
@@ -21,34 +22,45 @@ const ContactsPage: React.FC = () => {
   const fetchContacts = async () => {
     try {
       setLoading(true);
+
+      console.log(navigator.onLine)
+      if (!navigator.onLine) {
+        const offlineContacts = await getFromIndexedDB("contacts");
+        setContacts(offlineContacts);
+        setFilteredContacts(offlineContacts);
+        setLoading(false);
+
+        return;
+      }
+
       const loggedEmail = getLoggedEmail();
-  
+
       if (!loggedEmail) {
         console.error("No authenticated user");
         setLoading(false);
         return;
       }
-  
+
       const userData = await getUserByEmail(loggedEmail);
       if (!userData) {
         console.error("User not found");
         setLoading(false);
         return;
       }
-  
+
       if (!auth.currentUser?.uid) {
         console.error("User is not authenticated");
         setLoading(false);
         return;
       }
-  
+
       // Obtener contactos agendados
       const agendedContacts: { [key: string]: { name: string; status: string; profilePicture: string; email: string } } =
         (userData.data && "contacts" in userData.data) ? userData.data.contacts : {};
-  
+
       // Obtener todos los mensajes del usuario actual
       const messages = await getMessagesByUser(auth.currentUser.uid);
-  
+
       // Extraer IDs de usuarios con los que se ha intercambiado mensajes
       const messageUserIds = new Set<string>();
       messages.forEach((message) => {
@@ -59,7 +71,7 @@ const ContactsPage: React.FC = () => {
           messageUserIds.add(message.to);
         }
       });
-  
+
       // Combinar IDs de contactos agendados y de mensajes
       const allUserIds = new Set([...Object.keys(agendedContacts), ...Array.from(messageUserIds)]);
 
@@ -67,36 +79,40 @@ const ContactsPage: React.FC = () => {
       const contactsData = await Promise.all(
         Array.from(allUserIds).filter((userId) => !!userId).
           map(async (userId) => {
-          const isAgended = agendedContacts[userId] !== undefined;
-          const lastMessage = await getLastMessage(userId);
-  
-          if (isAgended) {
-            return {
-              id: userId,
-              name: agendedContacts[userId].name || "",
-              status: agendedContacts[userId].status || "",
-              profilePicture: agendedContacts[userId].profilePicture || "",
-              email: agendedContacts[userId].email || "",
-              lastMessage: lastMessage?.text || "",
-              isFile: lastMessage?.isFile || false,
-              isAgended: true,
-            };
-          } else {
-            const userDoc = await getUserById(userId);
-            return {
-              id: userId,
-              name: userDoc?.name || "Unknown",
-              status: userDoc?.status || "",
-              profilePicture: userDoc?.profilePicture || "",
-              email: userDoc?.email || "",
-              lastMessage: lastMessage?.text || "",
-              isFile: lastMessage?.isFile || false,
-              isAgended: false,
-            };
-          }
-        })
+            const isAgended = agendedContacts[userId] !== undefined;
+            const lastMessage = await getLastMessage(userId);
+
+            if (isAgended) {
+              return {
+                id: userId,
+                name: agendedContacts[userId].name || "",
+                status: agendedContacts[userId].status || "",
+                profilePicture: agendedContacts[userId].profilePicture || "",
+                email: agendedContacts[userId].email || "",
+                lastMessage: lastMessage?.text || "",
+                isFile: lastMessage?.isFile || false,
+                isAgended: true,
+              };
+            } else {
+              const userDoc = await getUserById(userId);
+              return {
+                id: userId,
+                name: userDoc?.name || "Unknown",
+                status: userDoc?.status || "",
+                profilePicture: userDoc?.profilePicture || "",
+                email: userDoc?.email || "",
+                lastMessage: lastMessage?.text || "",
+                isFile: lastMessage?.isFile || false,
+                isAgended: false,
+              };
+            }
+          })
       );
-  
+
+      for (const contactItem of contactsData) {
+        await saveToIndexedDB("contacts", contactItem)
+      }
+
       setContacts(contactsData);
       setFilteredContacts(contactsData);
     } catch (error) {
@@ -112,16 +128,16 @@ const ContactsPage: React.FC = () => {
 
   useEffect(() => {
     if (!auth.currentUser?.uid) return;
-  
+
     const unsubscribe = subscribeToLastMessages(auth.currentUser.uid, async (newMessages) => {
       setContacts((prevContacts) => {
         const updatedContacts = [...prevContacts];
-  
+
         newMessages.forEach(async (message) => {
           const existingContact = updatedContacts.find(
             (contact) => contact.id === message.from || contact.id === message.to
           );
-  
+
           if (existingContact) {
             // Si el contacto ya existe, actualiza su último mensaje
             existingContact.lastMessage = message.text || "";
@@ -130,7 +146,7 @@ const ContactsPage: React.FC = () => {
             // Si no existe, obtén sus datos y agrégalo
             const newUserId = message.from === auth.currentUser?.uid ? message.to : message.from;
             const userDoc = await getUserById(newUserId);
-  
+
             if (userDoc) {
               updatedContacts.push({
                 id: newUserId,
@@ -145,14 +161,14 @@ const ContactsPage: React.FC = () => {
             }
           }
         });
-  
+
         return [...updatedContacts];
       });
     });
-  
+
     return () => unsubscribe();
   }, []);
-  
+
 
   const handleAddContact = async (contactId: string) => {
     try {

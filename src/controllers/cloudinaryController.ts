@@ -8,9 +8,6 @@ export const uploadToCloudinary = async (
     ? import.meta.env.VITE_CLOUDINARY_UPLOAD_IMG_PRESET
     : import.meta.env.VITE_CLOUDINARY_UPLOAD_VIDEO_PRESET;
 
-  console.log(cloudName);
-  console.log(cloudPreset);
-
   const formData = new FormData();
   formData.append("file", file);
   formData.append("upload_preset", cloudPreset);
@@ -33,8 +30,6 @@ export const uploadToCloudinary = async (
         "Content-Type": "multipart/form-data",
       },
     });
-
-    console.log("--------->", response, "<---------------");
 
     if (response.status === 200) {
       // Si la carga fue exitosa, devolvemos la URL segura
