@@ -10,6 +10,7 @@ import { formatDate } from "../../helpers/utils";
 import { uploadToCloudinary } from "../../controllers/cloudinaryController";
 import Snackbar from "../../components/snackbar/Snackbar";
 import { saveToIndexedDB, getFromIndexedDB, getFromIndexedDbById } from "../../controllers/indexDbHelpers";
+import { MdOutlineSignalWifiConnectedNoInternet4 } from "react-icons/md"
 
 const DateSeparator: React.FC<{ date: string }> = ({ date }) => (
   <div className="text-gray-400 text-sm text-center my-2">
@@ -218,7 +219,13 @@ const ChatPage: React.FC = () => {
       }
 
       if (imageFile && imageUrl.length == 0) {
-        showSnackbar("We have problems to upload the selected image, please try again", "error");
+
+        if (navigator.onLine) {
+          showSnackbar("We have problems to send the selected image, please try again", "error");
+        } else {
+          showSnackbar("You don't have an internet connection, try again later")
+        }
+
         return;
       }
 
@@ -258,6 +265,7 @@ const ChatPage: React.FC = () => {
             ref={chatContainerRef}
             className="flex-1 h-full overflow-y-auto px-4 py-3 space-y-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800">
             {loadingMore && <div className="text-center text-gray-400">Loading messages...</div>}
+            {!navigator.onLine && !loading && messages.length == 0 && <div className="text-center text-error-red justify-items-center"><span className="flex flex-row gap-3 items-center"><MdOutlineSignalWifiConnectedNoInternet4 /> You don't have an internet connection, try again later</span></div>}
             {Object.entries(groupedMessages).map(([date, messages]) => (
               <div key={date}>
                 {/* Fecha como separador */}
