@@ -72,3 +72,25 @@ export const deleteFromIndexedDB = (storeName: string) => {
     store.clear();
   };
 };
+
+export const getFromIndexedDbById = async (storeName: string, id: string) => {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1);
+
+    request.onsuccess = (event: any) => {
+      const db = event.target.result;
+      const transaction = db.transaction(storeName, "readonly");
+      const store = transaction.objectStore(storeName);
+
+      const getRequest = store.get(id);
+
+      getRequest.onsuccess = () => {
+        resolve(getRequest.result);
+      };
+
+      getRequest.onerror = () => reject(getRequest.error);
+    };
+
+    request.onerror = () => reject(request.error);
+  });
+};

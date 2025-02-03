@@ -12,7 +12,6 @@ self.addEventListener("install", (event) => {
           "/favicon.ico",
           "/index.html",
           "/@vite/client",
-          "/styles/index.css",
           "/icon-192x192.png",
           "/screenshot_desktop.png",
           "/screenshot_mobile.png",
@@ -43,7 +42,6 @@ self.addEventListener("activate", (event) => {
 // Evento: Fetch
 self.addEventListener("fetch", (event) => {
   console.log("The dev service worker is serving the asset.");
-  console.log("222222222");
 
   event.respondWith(
     caches.match(event.request).then(function (response) {

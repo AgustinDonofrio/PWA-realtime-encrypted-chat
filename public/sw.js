@@ -12,7 +12,6 @@ self.addEventListener("install", (event) => {
           "/favicon.ico",
           "/index.html",
           "/@vite/client",
-          "/styles/index.css",
           "/icon-192x192.png",
           "/screenshot_desktop.png",
           "/screenshot_mobile.png",

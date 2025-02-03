@@ -1,7 +1,30 @@
 import { db, auth } from "../firebase/firebase.config";
-import { doc, getDocs, addDoc, collection, query, onSnapshot, orderBy, where, limit, or, Timestamp, startAfter } from "firebase/firestore";
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { mapAuthCodeToMessage, encryptMessage, decryptMessage } from "../helpers/utils";
+import {
+  doc,
+  getDocs,
+  addDoc,
+  collection,
+  query,
+  onSnapshot,
+  orderBy,
+  updateDoc,
+  where,
+  limit,
+  or,
+  Timestamp,
+  startAfter,
+} from "firebase/firestore";
+import {
+  getStorage,
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+} from "firebase/storage";
+import {
+  mapAuthCodeToMessage,
+  encryptMessage,
+  decryptMessage,
+} from "../helpers/utils";
 
 const storage = getStorage();
 const MESSAGE_PER_PAGE = 30;
@@ -66,19 +89,24 @@ export const subscribeToMessages = (
       messagesRef,
       where("to", "in", [auth.currentUser?.uid, userId]),
       where("from", "in", [auth.currentUser?.uid, userId]),
-      orderBy("creationDate", "asc"),
+      orderBy("creationDate", "asc")
       //limit(MESSAGE_PER_PAGE)
     );
 
     // Escuchar los cambios en tiempo real
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
       const newMessages = snapshot.docs.map((doc) => {
         const data = doc.data();
+
         return {
+          id: doc.id,
           text: data.text ? decryptMessage(data.text) : "",
           imageUrl: data.imageUrl ? decryptMessage(data.imageUrl) : null,
           isSender: data.from === auth.currentUser?.uid, // Verificar si el mensaje fue enviado por el usuario actual
           timestamp: data.creationDate?.toDate() || new Date(), // Convertir Timestamp a Date
+          sended: data.sended == undefined ? true : data.sended,
+          from: data.from,
+          to: data.to,
         };
       });
 
@@ -95,7 +123,10 @@ export const subscribeToMessages = (
   }
 };
 
-export const subscribeToLastMessages = (userId: string, callback: (messages: any[]) => void) => {
+export const subscribeToLastMessages = (
+  userId: string,
+  callback: (messages: any[]) => void
+) => {
   if (!userId) return () => {};
 
   const messagesRef = collection(db, "messages");
@@ -110,25 +141,24 @@ export const subscribeToLastMessages = (userId: string, callback: (messages: any
   const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
     const messages = snapshot.docs.map((doc) => {
       const data = doc.data();
-        if (data.text) {
-          data.text = decryptMessage(data.text);
-        }
+      if (data.text) {
+        data.text = decryptMessage(data.text);
+      }
 
-        if (data.imageUrl) {
-          data.imageUrl = decryptMessage(data.imageUrl);
-        }
+      if (data.imageUrl) {
+        data.imageUrl = decryptMessage(data.imageUrl);
+      }
 
-        return {
-          id: doc.id,
-          ...data,
-        }; 
+      return {
+        id: doc.id,
+        ...data,
+      };
     });
     callback(messages);
   });
 
   return unsubscribe;
 };
-
 
 export const sendMessage = async (
   toUser: string,
@@ -156,6 +186,7 @@ export const sendMessage = async (
       text: message || null,
       imageUrl: imageUrl || null,
       creationDate: Timestamp.now(),
+      sended: navigator.onLine,
     };
 
     // Guardar el mensaje en Firestore
@@ -259,7 +290,6 @@ export const fetchMessagesByPage = async (userId: string, lastVisible: any) => {
   }
 };
 
-
 export const getPreviousMessages = async (userId: string, lastVisible: any) => {
   if (!auth.currentUser?.uid) return [];
 
@@ -270,7 +300,7 @@ export const getPreviousMessages = async (userId: string, lastVisible: any) => {
     where("to", "in", [auth.currentUser.uid, userId]),
     where("from", "in", [auth.currentUser.uid, userId]),
     orderBy("creationDate", "asc"),
-    startAfter(lastVisible), // Pagina los resultados
+    startAfter(lastVisible) // Pagina los resultados
     //limit(MESSAGE_PER_PAGE)
   );
 
@@ -312,5 +342,17 @@ export const getMessagesByUser = async (userId: string) => {
   } catch (error) {
     console.error("Error fetching messages by user:", error);
     return [];
+  }
+};
+
+export const updateMessageSendedState = async (docId: string) => {
+  try {
+    await updateDoc(doc(db, "messages", docId), {
+      sended: true,
+    });
+
+    return { success: true, message: "Message updated" };
+  } catch (err: any) {
+    return { success: false, message: "Message cannot be updated" };
   }
 };
