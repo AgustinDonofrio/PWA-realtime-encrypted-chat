@@ -3,6 +3,7 @@ import {
   doc,
   getDocs,
   addDoc,
+  setDoc,
   collection,
   query,
   onSnapshot,
@@ -191,6 +192,49 @@ export const sendMessage = async (
 
     // Guardar el mensaje en Firestore
     await addDoc(messagesRef, newMessage);
+
+    return { success: true, message: "Message sent" };
+  } catch (error: any) {
+    console.error("Error sending message:", error);
+    return {
+      success: false,
+      message: mapAuthCodeToMessage(error.code),
+    };
+  }
+};
+
+export const sendMessageWithId = async (
+  messageId: string,
+  toUser: string,
+  message?: string,
+  imageUrl?: string
+) => {
+  try {
+    if (!auth.currentUser?.uid) {
+      return { success: false, message: "Message cannot be sent" };
+    }
+
+    if (message) {
+      message = encryptMessage(message);
+    }
+
+    if (imageUrl) {
+      imageUrl = encryptMessage(imageUrl);
+    }
+
+    const messagesRef = collection(db, "messages");
+
+    const newMessage = {
+      from: auth.currentUser?.uid,
+      to: toUser,
+      text: message || null,
+      imageUrl: imageUrl || null,
+      creationDate: Timestamp.now(),
+      sended: navigator.onLine,
+    };
+
+    // Usamos setDoc para establecer el documento con un ID personalizado
+    await setDoc(doc(messagesRef, messageId), newMessage);
 
     return { success: true, message: "Message sent" };
   } catch (error: any) {

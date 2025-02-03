@@ -4,7 +4,7 @@ import Header from "../../components/header/Header";
 import MessageBubble from "../../components/chat/MessageBubble";
 import InputBar from "../../components/chat/InputBar";
 import { getUserById } from "../../controllers/userController";
-import { subscribeToMessages, sendMessage, fetchMessagesByPage, updateMessageSendedState } from "../../controllers/messageController";
+import { subscribeToMessages, sendMessage, fetchMessagesByPage, updateMessageSendedState, sendMessageWithId } from "../../controllers/messageController";
 import LoadingPage from "../loading/LoadingPage";
 import { formatDate } from "../../helpers/utils";
 import { uploadToCloudinary } from "../../controllers/cloudinaryController";
@@ -83,22 +83,23 @@ const ChatPage: React.FC = () => {
   useEffect(() => {
     if (!userId) return;
 
-    if (!navigator.onLine) {
-      const fetchMessages = async () => {
-        if (!navigator.onLine) {
-          // Obtener mensajes de IndexedDB
-          const allMessages = await getFromIndexedDB("messages");
+    const fetchMessages = async () => {
+      if (!navigator.onLine) {
+        // Obtener mensajes de IndexedDB
+        const allMessages = await getFromIndexedDB("messages");
 
-          // Filtrar mensajes por el userId correspondiente
-          const filteredMessages = allMessages.filter((msg) => msg.from === userId || msg.to === userId);
+        // Filtrar mensajes por el userId correspondiente
+        const filteredMessages = allMessages.filter((msg) => msg.from === userId || msg.to === userId);
 
-          filteredMessages.sort((a, b) => a.timestamp - b.timestamp);
+        filteredMessages.sort((a, b) => a.timestamp - b.timestamp);
 
-          setMessages(filteredMessages);
-        }
+        setMessages(filteredMessages);
       }
+    }
+
+    if (!navigator.onLine) {
+
       fetchMessages().then(() => { setLoading(false); });
-      return
     }
 
 
@@ -114,12 +115,15 @@ const ChatPage: React.FC = () => {
         }
       }
 
+      if (navigator.onLine) {
+        if (newMessages.length > 0) {
+          setLastVisibleMessage(newMessages[newMessages.length - 1]);
+        }
 
-      if (newMessages.length > 0) {
-        setLastVisibleMessage(newMessages[newMessages.length - 1]);
+        setMessages(newMessages);
+      } else {
+        fetchMessages();
       }
-
-      setMessages(newMessages);
     });
 
     return () => {
@@ -134,17 +138,11 @@ const ChatPage: React.FC = () => {
       if (navigator.onLine) {
         // Verificar y actualizar el estado de los mensajes no enviados
         const unsentMessages = messages.filter((msg) => !msg.sended && msg.sended !== undefined);
+
         for (const msg of unsentMessages) {
           if (msg.id) {
-            const updateResponse = await updateMessageSendedState(msg.id);
+            await sendMessageWithId(msg.id, userId || "", msg.text, msg.imageUrl)
 
-            if (updateResponse.success) {
-              setMessages((prevMessages) =>
-                prevMessages.map((m) =>
-                  m.id === msg.id ? { ...m, sended: true } : m
-                )
-              );
-            }
           }
         }
       }
@@ -220,10 +218,7 @@ const ChatPage: React.FC = () => {
         return;
       }
 
-
       await sendMessage(userId, message, imageUrl);
-
-
     }
   };
 
