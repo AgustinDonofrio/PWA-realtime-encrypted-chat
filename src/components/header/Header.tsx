@@ -9,7 +9,6 @@ interface HeaderProps {
   leftButton?: "back" | "logo";
   rightButton?: "settings" | "logout" | "profile"; 
   profileImageUrl?: string; // Imagen de perfil (solo relevante si el botón derecho es "profile")
-  renderBottomLine?: boolean;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -17,14 +16,14 @@ const Header: React.FC<HeaderProps> = ({
   leftButton,
   rightButton,
   profileImageUrl,
-  renderBottomLine = true,
 }) => {
   const navigate = useNavigate();
   const [showConfirmLogout, setShowConfirmLogout] = useState(false); // Estado para mostrar u ocultar el cartel de confirmación
+  const isDesktop = window.innerWidth > 768;
 
   const handleNavigate = (destination: "back" | "settings") => {
     if (destination === "back") {
-      navigate(-1); // Retrocede en la navegación
+      navigate("/contacts");
     } else {
       navigate("/settings");
     }
@@ -44,9 +43,9 @@ const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <div className={`flex items-center justify-between px-4 py-3 bg-main-color ${renderBottomLine ? "border-b-2" : ""} border-gray-600`}>
+    <div className={`flex items-center justify-between px-4 py-3 bg-main-color ${isDesktop ? "" : "border-b-2"} border-gray-600 h-16`}>
       {/* Botón izquierdo */}
-      {leftButton === "back" && (
+      {!isDesktop && leftButton === "back" && (
         <button
           onClick={() => handleNavigate("back")}
           className="text-white text-2xl hover:text-gray-300 focus:outline-none"
@@ -63,6 +62,10 @@ const Header: React.FC<HeaderProps> = ({
         />
       )}
 
+      {isDesktop && leftButton !== "back" || leftButton !== "logo" && (
+        <div className="w-10 h-10"></div>
+      )}
+
       {/* Título */}
       <h1 className="text-white text-xl font-semibold text-center flex-grow">
         {title}
@@ -72,16 +75,16 @@ const Header: React.FC<HeaderProps> = ({
       {rightButton === "settings" && (
         <button
           onClick={() => handleNavigate("settings")}
-          className="text-white text-2xl hover:text-gray-300 focus:outline-none"
+          className="text-white text-2xl hover:text-gray-300 place-items-center focus:outline-none w-10 h-10"
         >
-          <FiSettings className="text-white bg-main-color" />
+          <FiSettings className="text-white bg-main-color " />
         </button>
       )}
 
       {rightButton === "logout" && (
         <button
           onClick={() => setShowConfirmLogout(true)} // Mostrar el cartel de confirmación
-          className="text-white text-2xl hover:text-gray-300 focus:outline-none"
+          className="text-white text-2xl hover:text-gray-300 place-items-center focus:outline-none w-10 h-10"
         >
           <FiLogOut className="text-red-500 bg-main-color" />
         </button>

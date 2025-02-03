@@ -73,7 +73,7 @@ const ContactCard: React.FC<ContactCardProps> = ({ name, email, status, profileP
               onAddContact?.(id);
             }}
             className="p-2 bg-green-600 text-white rounded-full hover:bg-green-500 flex items-center justify-center"
-            title="Agregar contacto"
+            title="Add contact"
             disabled={isAdding}
           >
             {isAdding ? <Spinner size={20} color="#A3D4FF"/> : <FaPlus />}
