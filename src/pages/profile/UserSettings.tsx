@@ -6,7 +6,11 @@ import { getAuth, User } from "firebase/auth";
 import { getUserById, updateProfilePicture } from "../../controllers/userController";
 import Snackbar from "../../components/snackbar/Snackbar";
 
-const UserSettings: React.FC = () => {
+interface UserSettingsProps {
+  onMessageClick?: () => void;
+}
+
+const UserSettings: React.FC<UserSettingsProps> = ({ onMessageClick }) => {
   const [user, setUser] = useState<User | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -18,6 +22,7 @@ const UserSettings: React.FC = () => {
   });
   const [isEditingName, setIsEditingName] = useState(false);
   const [isEditingStatus, setIsEditingStatus] = useState(false);
+  const isDesktop = window.innerWidth > 768;
 
   const [snackbar, setSnackbar] = useState<{ isOpen: boolean; message: string; type: "success" | "error" | "info" }>({
     isOpen: false,
@@ -136,8 +141,9 @@ const UserSettings: React.FC = () => {
       {/* Header */}
       <Header
         title="Profile settings"
-        leftButton="back"
+        leftButton={isDesktop ? "message" : "back"}
         rightButton="logout"
+        onMessageClick={onMessageClick}
       />
 
       {/* Foto de perfil */}

@@ -10,9 +10,10 @@ import Spinner from "../../components/spinner/Spinner";
 
 interface ContactsPageProps {
   onContactClick?: (contactId: string) => void;
+  onSettingsClick?: () => void;
 }
 
-const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick }) => {
+const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick, onSettingsClick }) => {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [contacts, setContacts] = useState<
@@ -134,22 +135,18 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick }) => {
   useEffect(() => {
     if (!auth.currentUser?.uid) return;
   
-    const unsubscribe = subscribeToLastMessages(auth.currentUser.uid, async (newMessages) => {
+    const unsubscribeMessage = subscribeToLastMessages(auth.currentUser.uid, async (newMessages) => {
       setContacts((prevContacts) => {
         const updatedContacts = [...prevContacts];
   
         newMessages.forEach(async (message) => {
-          const existingContact = updatedContacts.find(
-            (contact) => contact.id === message.from || contact.id === message.to
-          );
-  
-          if (existingContact) {
-            // Si el contacto ya existe, actualiza su último mensaje
-            existingContact.lastMessage = message.text || "";
-            existingContact.isFile = message.isFile || false;
-          } else {
-            // Si no existe, obtén sus datos y agrégalo
-            const newUserId = message.from === auth.currentUser?.uid ? message.to : message.from;
+          const newUserId = message.from === auth.currentUser?.uid ? message.to : message.from;
+          
+          // Verificar si el contacto ya existe en la lista
+          const existingContact = updatedContacts.find((contact) => contact.id === newUserId);
+
+          if (!existingContact) {
+            // Si el contacto no existe, obtener sus datos y agregarlo
             const userDoc = await getUserById(newUserId);
   
             if (userDoc) {
@@ -161,17 +158,46 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick }) => {
                 email: userDoc.email || "",
                 lastMessage: message.text || "",
                 isFile: message.isFile || false,
-                isAgended: false,
+                isAgended: false, // Marcar como no agendado
               });
             }
+          } else {
+            // Si el contacto ya existe, actualizar su último mensaje
+            existingContact.lastMessage = message.text || "";
+            existingContact.isFile = message.isFile || false;
           }
         });
   
-        return [...updatedContacts];
+          // if (existingContact) {
+          //   // Si el contacto ya existe, actualiza su último mensaje
+          //   existingContact.lastMessage = message.text || "";
+          //   existingContact.isFile = message.isFile || false;
+          // } else {
+          //   // Si no existe, obtén sus datos y agrégalo
+          //   const newUserId = message.from === auth.currentUser?.uid ? message.to : message.from;
+          //   const userDoc = await getUserById(newUserId);
+  
+          //   if (userDoc) {
+          //     updatedContacts.push({
+          //       id: newUserId,
+          //       name: userDoc.name || "Unknown",
+          //       status: userDoc.status || "",
+          //       profilePicture: userDoc.profilePicture || "",
+          //       email: userDoc.email || "",
+          //       lastMessage: message.text || "",
+          //       isFile: message.isFile || false,
+          //       isAgended: false,
+          //     });
+          //   }
+          // }
+        // });
+  
+        //return [...updatedContacts];
+        return updatedContacts;
       });
     });
   
-    return () => unsubscribe();
+    return () => unsubscribeMessage();
   }, []);
 
   // Suscribirse a cambios en los contactos del usuario actual
@@ -237,8 +263,10 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick }) => {
   return (
     <div className="h-full w-full mx-auto bg-main-color flex flex-col relative shadow-lg">
       <Header
+        leftButton="logo"
         title="BlueCrypt"
         rightButton="settings"
+        onSettingsClick={onSettingsClick}
       />
       {loading ? (
         <Spinner />
