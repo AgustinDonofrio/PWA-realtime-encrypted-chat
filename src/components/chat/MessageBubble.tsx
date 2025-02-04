@@ -28,7 +28,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ text, imageUrl, videoUrl,
     <div className={`flex flex-row max-w-[50%] items-center gap-3 ${isSender ? "ml-auto justify-end" : "mr-auto"}`}>
       {!withConnection ? <FaExclamationCircle color="#E74C3C"></FaExclamationCircle> : null}
       <div
-        className={`relative flex flex-col min-w-[3.5rem] max-w-[78%] px-3 py-2 rounded-lg shadow-md break-words w-fit mb-2 ${isSender
+        className={`relative flex flex-col min-w-[3.5rem] max-w-md px-3 py-2 rounded-lg shadow-md break-words mb-2 ${isSender
           ? " bg-royal-blue text-white"
           : " bg-steel text-white"
           }`}
@@ -37,8 +37,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ text, imageUrl, videoUrl,
         {/* Mostrar contenido (texto o imagen) */}
 
         {imageUrl
-          ? <img className="max-w-sm max-h-sm" src={imageUrl} alt="image" onLoad={handleImageLoad} />
-          : videoUrl ? <video className="max-w-sm max-h-sm rounded-lg" controls crossOrigin="anonymous">
+          ? <img src={imageUrl} alt="image" onLoad={handleImageLoad} />
+          : videoUrl ? <video controls crossOrigin="anonymous">
             <source src={videoUrl} type="video/mp4" />
             Your browser does not support videos.
           </video> : text
