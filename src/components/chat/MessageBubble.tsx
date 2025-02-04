@@ -2,17 +2,19 @@ import React, { useState } from "react";
 import { formatTime } from "../../helpers/utils";
 import Spinner from "../spinner/Spinner";
 import { FaExclamationCircle } from "react-icons/fa"
+import axios from "axios";
 
 interface MessageBubbleProps {
   text?: string;
   imageUrl?: string;
+  videoUrl?: string;
   isSender: boolean;
   timestamp: Date;
   onImageLoad?: () => void;
   withConnection: boolean;
 }
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ text, imageUrl, isSender, timestamp, onImageLoad, withConnection }) => {
+const MessageBubble: React.FC<MessageBubbleProps> = ({ text, imageUrl, videoUrl, isSender, timestamp, onImageLoad, withConnection }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
 
   const handleImageLoad = () => {
@@ -31,13 +33,18 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({ text, imageUrl, isSender,
           : " bg-steel text-white"
           }`}
       >
-        {imageUrl?.length == 0 && text?.length == 0 ? <Spinner color="#A3D4FF"></Spinner> : null}
+        {imageUrl?.length == 0 && text?.length == 0 && videoUrl?.length == 0 ? <Spinner color="#A3D4FF"></Spinner> : null}
         {/* Mostrar contenido (texto o imagen) */}
 
         {imageUrl
           ? <img className="max-w-sm max-h-sm" src={imageUrl} alt="image" onLoad={handleImageLoad} />
-          : text
+          : videoUrl ? <video className="max-w-sm max-h-sm rounded-lg" controls crossOrigin="anonymous">
+            <source src={videoUrl} type="video/mp4" />
+            Your browser does not support videos.
+          </video> : text
         }
+
+
 
         {/* Mostrar hora en la esquina inferior derecha */}
         <div className="flex justify-end mt-1">

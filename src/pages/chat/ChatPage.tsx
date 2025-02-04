@@ -20,7 +20,7 @@ const DateSeparator: React.FC<{ date: string }> = ({ date }) => (
 
 const ChatPage: React.FC = () => {
   const { userId } = useParams();
-  const [messages, setMessages] = useState<{ id?: string, from?: string, to?: string, text?: string; imageUrl?: string; isSender: boolean, timestamp: Date, sended?: boolean }[]>([]);
+  const [messages, setMessages] = useState<{ id?: string, from?: string, to?: string, text?: string; imageUrl?: string; videoUrl?: string, isSender: boolean, timestamp: Date, sended?: boolean }[]>([]);
   const [chatUser, setChatUser] = useState<{ name: string; imageUrl: string }>({
     name: "",
     imageUrl: "",
@@ -147,7 +147,7 @@ const ChatPage: React.FC = () => {
 
         for (const msg of unsentMessages) {
           if (msg.id) {
-            await sendMessageWithId(msg.id, userId, msg.text, msg.imageUrl)
+            await sendMessageWithId(msg.id, userId, msg.text, msg.imageUrl, msg.videoUrl)
           }
         }
       }
@@ -204,21 +204,24 @@ const ChatPage: React.FC = () => {
   }, [userId, lastVisibleMessage]);
 
 
-  const handleSendMessage = async (message: string, imageFile?: File) => {
-    let imageUrl = "";
+  const handleSendMessage = async (message: string, fileToUpload?: File) => {
+    let fileUrl = "";
+    let isVideoFile = false;
     if (userId) {
-      if (imageFile) {
+      if (fileToUpload) {
         setLoadingImgUpload(true);
+        isVideoFile = fileToUpload.type.startsWith("video/");
+        const fileResult = await uploadToCloudinary(fileToUpload);
 
-        const imgResult = await uploadToCloudinary(imageFile);
-
-        if (imgResult) {
-          imageUrl = imgResult;
+        if (fileResult) {
+          fileUrl = fileResult;
         }
         setLoadingImgUpload(false);
+      } else {
+        return showSnackbar("Invalid file selected")
       }
 
-      if (imageFile && imageUrl.length == 0) {
+      if (fileToUpload && fileUrl.length == 0) {
 
         if (navigator.onLine) {
           showSnackbar("We have problems to send the selected image, please try again", "error");
@@ -229,7 +232,7 @@ const ChatPage: React.FC = () => {
         return;
       }
 
-      await sendMessage(userId, message, imageUrl);
+      await sendMessage(userId, message, fileUrl, isVideoFile);
     }
   };
 
@@ -276,6 +279,7 @@ const ChatPage: React.FC = () => {
                       key={index}
                       text={msg.text}
                       imageUrl={msg.imageUrl}
+                      videoUrl={msg.videoUrl}
                       isSender={msg.isSender}
                       timestamp={msg.timestamp}
                       withConnection={msg.isSender ? msg.sended : true}
@@ -285,7 +289,7 @@ const ChatPage: React.FC = () => {
                 })}
               </div>
             ))}
-            {loadingImgUpload ? <MessageBubble text="" imageUrl="" isSender={true} timestamp={new Date()} withConnection={true}></MessageBubble> : null}
+            {loadingImgUpload ? <MessageBubble text="" imageUrl="" videoUrl="" isSender={true} timestamp={new Date()} withConnection={true}></MessageBubble> : null}
             <div ref={chatEndRef} />
           </div>
 

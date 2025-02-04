@@ -103,6 +103,7 @@ export const subscribeToMessages = (
           id: doc.id,
           text: data.text ? decryptMessage(data.text) : "",
           imageUrl: data.imageUrl ? decryptMessage(data.imageUrl) : null,
+          videoUrl: data.videoUrl ? decryptMessage(data.videoUrl) : null,
           isSender: data.from === auth.currentUser?.uid, // Verificar si el mensaje fue enviado por el usuario actual
           timestamp: data.creationDate?.toDate() || new Date(), // Convertir Timestamp a Date
           sended: data.sended == undefined ? true : data.sended,
@@ -150,6 +151,10 @@ export const subscribeToLastMessages = (
         data.imageUrl = decryptMessage(data.imageUrl);
       }
 
+      if (data.videoUrl) {
+        data.videoUrl = decryptMessage(data.videoUrl);
+      }
+
       return {
         id: doc.id,
         ...data,
@@ -164,7 +169,8 @@ export const subscribeToLastMessages = (
 export const sendMessage = async (
   toUser: string,
   message?: string,
-  imageUrl?: string
+  fileUrl?: string,
+  isVideoFile?: boolean
 ) => {
   try {
     if (!auth.currentUser?.uid) {
@@ -175,8 +181,8 @@ export const sendMessage = async (
       message = encryptMessage(message);
     }
 
-    if (imageUrl) {
-      imageUrl = encryptMessage(imageUrl);
+    if (fileUrl) {
+      fileUrl = encryptMessage(fileUrl);
     }
 
     const messagesRef = collection(db, "messages");
@@ -185,7 +191,8 @@ export const sendMessage = async (
       from: auth.currentUser?.uid,
       to: toUser,
       text: message || null,
-      imageUrl: imageUrl || null,
+      imageUrl: isVideoFile ? null : fileUrl || null,
+      videoUrl: isVideoFile ? fileUrl || null : null,
       creationDate: Timestamp.now(),
       sended: navigator.onLine,
     };
@@ -207,7 +214,8 @@ export const sendMessageWithId = async (
   messageId: string,
   toUser: string,
   message?: string,
-  imageUrl?: string
+  imageUrl?: string,
+  videoUrl?: string
 ) => {
   try {
     if (!auth.currentUser?.uid) {
@@ -222,6 +230,10 @@ export const sendMessageWithId = async (
       imageUrl = encryptMessage(imageUrl);
     }
 
+    if (videoUrl) {
+      videoUrl = encryptMessage(videoUrl);
+    }
+
     const messagesRef = collection(db, "messages");
 
     const newMessage = {
@@ -229,6 +241,7 @@ export const sendMessageWithId = async (
       to: toUser,
       text: message || null,
       imageUrl: imageUrl || null,
+      videoUrl: videoUrl || null,
       creationDate: Timestamp.now(),
       sended: navigator.onLine,
     };
@@ -314,9 +327,14 @@ export const fetchMessagesByPage = async (userId: string, lastVisible: any) => {
         data.imageUrl = decryptMessage(data.imageUrl);
       }
 
+      if (data.videoUrl) {
+        data.videoUrl = decryptMessage(data.videoUrl);
+      }
+
       return {
         text: data.text || "",
         imageUrl: data.imageUrl || null,
+        videoUrl: data.videoUrl || null,
         isSender: data.from === auth.currentUser?.uid,
         timestamp: data.creationDate?.toDate() || new Date(),
       };
@@ -356,6 +374,7 @@ export const getPreviousMessages = async (userId: string, lastVisible: any) => {
       id: doc.id,
       text: data.text ? decryptMessage(data.text) : "",
       imageUrl: data.imageUrl ? decryptMessage(data.imageUrl) : null,
+      videoUrl: data.videoUrl ? decryptMessage(data.videoUrl) : null,
       isSender: data.from === auth.currentUser?.uid,
       timestamp: data.creationDate?.toDate() || new Date(),
     };
