@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Login from "./login/Login";
 import Register from "./register/Register";
@@ -10,7 +10,19 @@ import PublicRoute from "../components/routes/PublicRoute";
 import PrivateRoute from "../components/routes/PrivateRoute";
 
 const App: React.FC = () => {
-  const isDesktop = window.innerWidth > 768;
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth > 768);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(min-width: 769px)");
+
+    const handleResize = (event: MediaQueryListEvent) => {
+      setIsDesktop(event.matches);
+    };
+
+    mediaQuery.addEventListener("change", handleResize);
+    
+    return () => mediaQuery.removeEventListener("change", handleResize);
+  }, []);
 
   return (
     <Router>
