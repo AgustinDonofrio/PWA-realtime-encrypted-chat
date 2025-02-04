@@ -1,7 +1,31 @@
 import { db, auth } from "../firebase/firebase.config";
-import { doc, getDocs, addDoc, collection, query, onSnapshot, orderBy, where, limit, or, Timestamp, startAfter } from "firebase/firestore";
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { mapAuthCodeToMessage, encryptMessage, decryptMessage } from "../helpers/utils";
+import {
+  doc,
+  getDocs,
+  addDoc,
+  setDoc,
+  collection,
+  query,
+  onSnapshot,
+  orderBy,
+  updateDoc,
+  where,
+  limit,
+  or,
+  Timestamp,
+  startAfter,
+} from "firebase/firestore";
+import {
+  getStorage,
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+} from "firebase/storage";
+import {
+  mapAuthCodeToMessage,
+  encryptMessage,
+  decryptMessage,
+} from "../helpers/utils";
 
 const storage = getStorage();
 const MESSAGE_PER_PAGE = 30;
@@ -66,19 +90,25 @@ export const subscribeToMessages = (
       messagesRef,
       where("to", "in", [auth.currentUser?.uid, userId]),
       where("from", "in", [auth.currentUser?.uid, userId]),
-      orderBy("creationDate", "asc"),
+      orderBy("creationDate", "asc")
       //limit(MESSAGE_PER_PAGE)
     );
 
     // Escuchar los cambios en tiempo real
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
       const newMessages = snapshot.docs.map((doc) => {
         const data = doc.data();
+
         return {
+          id: doc.id,
           text: data.text ? decryptMessage(data.text) : "",
           imageUrl: data.imageUrl ? decryptMessage(data.imageUrl) : null,
+          videoUrl: data.videoUrl ? decryptMessage(data.videoUrl) : null,
           isSender: data.from === auth.currentUser?.uid, // Verificar si el mensaje fue enviado por el usuario actual
           timestamp: data.creationDate?.toDate() || new Date(), // Convertir Timestamp a Date
+          sended: data.sended == undefined ? true : data.sended,
+          from: data.from,
+          to: data.to,
         };
       });
 
@@ -95,7 +125,10 @@ export const subscribeToMessages = (
   }
 };
 
-export const subscribeToLastMessages = (userId: string, callback: (messages: any[]) => void) => {
+export const subscribeToLastMessages = (
+  userId: string,
+  callback: (messages: any[]) => void
+) => {
   if (!userId) return () => {};
 
   const messagesRef = collection(db, "messages");
@@ -110,18 +143,22 @@ export const subscribeToLastMessages = (userId: string, callback: (messages: any
   const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
     const messages = snapshot.docs.map((doc) => {
       const data = doc.data();
-        if (data.text) {
-          data.text = decryptMessage(data.text);
-        }
+      if (data.text) {
+        data.text = decryptMessage(data.text);
+      }
 
-        if (data.imageUrl) {
-          data.imageUrl = decryptMessage(data.imageUrl);
-        }
+      if (data.imageUrl) {
+        data.imageUrl = decryptMessage(data.imageUrl);
+      }
 
-        return {
-          id: doc.id,
-          ...data,
-        }; 
+      if (data.videoUrl) {
+        data.videoUrl = decryptMessage(data.videoUrl);
+      }
+
+      return {
+        id: doc.id,
+        ...data,
+      };
     });
     callback(messages);
   });
@@ -132,7 +169,53 @@ export const subscribeToLastMessages = (userId: string, callback: (messages: any
 export const sendMessage = async (
   toUser: string,
   message?: string,
-  imageUrl?: string
+  fileUrl?: string,
+  isVideoFile?: boolean
+) => {
+  try {
+    if (!auth.currentUser?.uid) {
+      return { success: false, message: "Message cannot be sent" };
+    }
+
+    if (message) {
+      message = encryptMessage(message);
+    }
+
+    if (fileUrl) {
+      fileUrl = encryptMessage(fileUrl);
+    }
+
+    const messagesRef = collection(db, "messages");
+
+    const newMessage = {
+      from: auth.currentUser?.uid,
+      to: toUser,
+      text: message || null,
+      imageUrl: isVideoFile ? null : fileUrl || null,
+      videoUrl: isVideoFile ? fileUrl || null : null,
+      creationDate: Timestamp.now(),
+      sended: navigator.onLine,
+    };
+
+    // Guardar el mensaje en Firestore
+    await addDoc(messagesRef, newMessage);
+
+    return { success: true, message: "Message sent" };
+  } catch (error: any) {
+    console.error("Error sending message:", error);
+    return {
+      success: false,
+      message: mapAuthCodeToMessage(error.code),
+    };
+  }
+};
+
+export const sendMessageWithId = async (
+  messageId: string,
+  toUser: string,
+  message?: string,
+  imageUrl?: string,
+  videoUrl?: string
 ) => {
   try {
     if (!auth.currentUser?.uid) {
@@ -147,6 +230,10 @@ export const sendMessage = async (
       imageUrl = encryptMessage(imageUrl);
     }
 
+    if (videoUrl) {
+      videoUrl = encryptMessage(videoUrl);
+    }
+
     const messagesRef = collection(db, "messages");
 
     const newMessage = {
@@ -154,11 +241,13 @@ export const sendMessage = async (
       to: toUser,
       text: message || null,
       imageUrl: imageUrl || null,
+      videoUrl: videoUrl || null,
       creationDate: Timestamp.now(),
+      sended: navigator.onLine,
     };
 
-    // Guardar el mensaje en Firestore
-    await addDoc(messagesRef, newMessage);
+    // Usamos setDoc para establecer el documento con un ID personalizado
+    await setDoc(doc(messagesRef, messageId), newMessage);
 
     return { success: true, message: "Message sent" };
   } catch (error: any) {
@@ -238,9 +327,14 @@ export const fetchMessagesByPage = async (userId: string, lastVisible: any) => {
         data.imageUrl = decryptMessage(data.imageUrl);
       }
 
+      if (data.videoUrl) {
+        data.videoUrl = decryptMessage(data.videoUrl);
+      }
+
       return {
         text: data.text || "",
         imageUrl: data.imageUrl || null,
+        videoUrl: data.videoUrl || null,
         isSender: data.from === auth.currentUser?.uid,
         timestamp: data.creationDate?.toDate() || new Date(),
       };
@@ -258,7 +352,6 @@ export const fetchMessagesByPage = async (userId: string, lastVisible: any) => {
   }
 };
 
-
 export const getPreviousMessages = async (userId: string, lastVisible: any) => {
   if (!auth.currentUser?.uid) return [];
 
@@ -269,7 +362,7 @@ export const getPreviousMessages = async (userId: string, lastVisible: any) => {
     where("to", "in", [auth.currentUser.uid, userId]),
     where("from", "in", [auth.currentUser.uid, userId]),
     orderBy("creationDate", "asc"),
-    startAfter(lastVisible), // Pagina los resultados
+    startAfter(lastVisible) // Pagina los resultados
     //limit(MESSAGE_PER_PAGE)
   );
 
@@ -281,6 +374,7 @@ export const getPreviousMessages = async (userId: string, lastVisible: any) => {
       id: doc.id,
       text: data.text ? decryptMessage(data.text) : "",
       imageUrl: data.imageUrl ? decryptMessage(data.imageUrl) : null,
+      videoUrl: data.videoUrl ? decryptMessage(data.videoUrl) : null,
       isSender: data.from === auth.currentUser?.uid,
       timestamp: data.creationDate?.toDate() || new Date(),
     };
@@ -311,5 +405,17 @@ export const getMessagesByUser = async (userId: string) => {
   } catch (error) {
     console.error("Error fetching messages by user:", error);
     return [];
+  }
+};
+
+export const updateMessageSendedState = async (docId: string) => {
+  try {
+    await updateDoc(doc(db, "messages", docId), {
+      sended: true,
+    });
+
+    return { success: true, message: "Message updated" };
+  } catch (err: any) {
+    return { success: false, message: "Message cannot be updated" };
   }
 };

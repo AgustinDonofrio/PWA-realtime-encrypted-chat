@@ -4,11 +4,13 @@ import Header from "../../components/header/Header";
 import MessageBubble from "../../components/chat/MessageBubble";
 import InputBar from "../../components/chat/InputBar";
 import { getUserById } from "../../controllers/userController";
-import { subscribeToMessages, sendMessage, fetchMessagesByPage } from "../../controllers/messageController";
+import { subscribeToMessages, sendMessage, fetchMessagesByPage, updateMessageSendedState, sendMessageWithId } from "../../controllers/messageController";
 import LoadingPage from "../loading/LoadingPage";
 import { formatDate } from "../../helpers/utils";
 import { uploadToCloudinary } from "../../controllers/cloudinaryController";
 import Snackbar from "../../components/snackbar/Snackbar";
+import { saveToIndexedDB, getFromIndexedDB, getFromIndexedDbById } from "../../controllers/indexDbHelpers";
+import { MdOutlineSignalWifiConnectedNoInternet4 } from "react-icons/md"
 
 const DateSeparator: React.FC<{ date: string }> = ({ date }) => (
   <div className="text-gray-400 text-sm text-center my-2">
@@ -17,13 +19,13 @@ const DateSeparator: React.FC<{ date: string }> = ({ date }) => (
 );
 
 interface ChatPageProps {
-  userId?: string; // Recibir userId como prop
+  userId?: string;
 }
 
 const ChatPage: React.FC<ChatPageProps> = ({ userId }) => {
-  const { userId: userIdFromParams } = useParams<{ userId: string }>();
+  const { userId: userIdFromParams } = useParams<{ userId: string}>();
   const finalUserId = userId || userIdFromParams; // Usa el de props (para mobile) o el de params (para desktop)
-  const [messages, setMessages] = useState<{ text?: string; imageUrl?: string; isSender: boolean, timestamp: Date }[]>([]);
+  const [messages, setMessages] = useState<{ id?: string, from?: string, to?: string, text?: string; imageUrl?: string; videoUrl?: string, isSender: boolean, timestamp: Date, sended?: boolean }[]>([]);
   const [chatUser, setChatUser] = useState<{ name: string; imageUrl: string }>({
     name: "",
     imageUrl: "",
@@ -38,6 +40,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ userId }) => {
   const chatEndRef = useRef<HTMLDivElement>(null); // Para scroll automático
   const chatContainerRef = useRef<HTMLDivElement>(null); // Para cargar más mensajes
 
+
   const showSnackbar = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
     setSnackbarMessage(message);
     setSnackbarType(type);
@@ -50,9 +53,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ userId }) => {
 
   const handleImageLoad = () => {
     // Ejecutar el scroll automático después de que la imagen se haya cargado
-    setTimeout(() => {
-      chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 100);
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   // Obtener los datos del usuario con el que se está chateando
@@ -61,7 +62,13 @@ const ChatPage: React.FC<ChatPageProps> = ({ userId }) => {
 
     const fetchChatUser = async () => {
       try {
-        const userData: any = await getUserById(finalUserId);
+        let userData: any
+        if (navigator.onLine) {
+          userData = await getUserById(finalUserId);
+        } else {
+          userData = await getFromIndexedDbById("contacts", finalUserId);
+        }
+
         if (userData) {
           setChatUser({
             name: userData.name,
@@ -77,16 +84,57 @@ const ChatPage: React.FC<ChatPageProps> = ({ userId }) => {
 
     fetchChatUser();
   }, [finalUserId]);
-  
+
   // Obtener mensajes en tiempo real
   useEffect(() => {
     if (!finalUserId) return;
 
-    const unsubscribe = subscribeToMessages(finalUserId, (newMessages) => {
-      if (newMessages.length > 0) { 
-        setLastVisibleMessage(newMessages[newMessages.length - 1]); // Guardar el último mensaje visible
+    const fetchMessages = async () => {
+      if (!navigator.onLine) {
+        // Obtener mensajes de IndexedDB
+        const allMessages = await getFromIndexedDB("messages");
+
+        // Filtrar mensajes por el userId correspondiente
+        const filteredMessages = allMessages.filter((msg) => msg.from === finalUserId || msg.to === finalUserId);
+
+        filteredMessages.sort((a, b) => a.timestamp - b.timestamp);
+
+        setMessages(filteredMessages);
       }
-      setMessages(newMessages);
+    }
+
+    if (!navigator.onLine) {
+      fetchMessages().then(() => { setLoading(false); });
+    }
+
+
+    const unsubscribe = subscribeToMessages(finalUserId, async (newMessages) => {
+
+      for (const newMsg of newMessages) {
+
+        saveToIndexedDB("messages", newMsg)
+
+        if (!newMsg.sended && navigator.onLine) {
+          const updateResponse = await updateMessageSendedState(newMsg.id);
+          newMsg.sended = updateResponse.success;
+        }
+      }
+
+      if (navigator.onLine) {
+        if (newMessages.length > 0) {
+          setLastVisibleMessage(newMessages[newMessages.length - 1]);
+          setMessages((prevMessages) => {
+            const mergedMessages = [...prevMessages, ...newMessages];
+
+            // Eliminar duplicados basados en el ID del mensaje
+            const uniqueMessages = Array.from(new Map(mergedMessages.map(msg => [msg.id, msg])).values());
+
+            return uniqueMessages.sort((a, b) => a.timestamp - b.timestamp);
+          });
+        }
+      } else {
+        fetchMessages();
+      }
     });
 
     return () => {
@@ -97,9 +145,31 @@ const ChatPage: React.FC<ChatPageProps> = ({ userId }) => {
   }, [finalUserId]);
 
   useEffect(() => {
+    const handleOnline = async () => {
+      if (navigator.onLine && finalUserId) {
+        // Verificar y actualizar el estado de los mensajes no enviados
+        const unsentMessages = messages.filter((msg) => !msg.sended && msg.sended !== undefined);
+
+        for (const msg of unsentMessages) {
+          if (msg.id) {
+            await sendMessageWithId(msg.id, finalUserId, msg.text, msg.imageUrl, msg.videoUrl)
+          }
+        }
+      }
+    };
+
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [messages]);
+
+  useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  //Scroll para carga inicial de imagen
   useEffect(() => {
     if (loadingImgUpload) {
       chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -108,16 +178,16 @@ const ChatPage: React.FC<ChatPageProps> = ({ userId }) => {
 
   const loadMoreMessages = async () => {
     if (!finalUserId || !lastVisibleMessage || loadingMore) return;
-  
+
     setLoadingMore(true);
-  
+
     const { messages: olderMessages, lastVisible } = await fetchMessagesByPage(finalUserId, lastVisibleMessage);
-  
+
     if (olderMessages.length > 0) {
       setMessages((prevMessages) => [...prevMessages, ...olderMessages]);
       setLastVisibleMessage(lastVisible); // Actualizar el último mensaje visible
     }
-  
+
     setLoadingMore(false);
   };
 
@@ -139,26 +209,35 @@ const ChatPage: React.FC<ChatPageProps> = ({ userId }) => {
   }, [finalUserId, lastVisibleMessage]);
 
 
-  const handleSendMessage = async (message: string, imageFile?: File) => {
-    let imageUrl = "";
+  const handleSendMessage = async (message: string, fileToUpload?: File) => {
+    let fileUrl = "";
+    let isVideoFile = false;
     if (finalUserId) {
-      if (imageFile) {
+      if (fileToUpload) {
         setLoadingImgUpload(true);
+        isVideoFile = fileToUpload.type.startsWith("video/");
+        const fileResult = await uploadToCloudinary(fileToUpload);
 
-        const imgResult = await uploadToCloudinary(imageFile);
-
-        if (imgResult) {
-          imageUrl = imgResult;
+        if (fileResult) {
+          fileUrl = fileResult;
         }
         setLoadingImgUpload(false);
+      } else {
+        return showSnackbar("Invalid file selected")
       }
 
-      if (imageFile && imageUrl.length == 0) {
-        showSnackbar("We have problems to upload the selected image, please try again", "error");
+      if (fileToUpload && fileUrl.length == 0) {
+
+        if (navigator.onLine) {
+          showSnackbar("We have problems to send the selected image, please try again", "error");
+        } else {
+          showSnackbar("You don't have an internet connection, try again later", "error")
+        }
+
         return;
       }
 
-      await sendMessage(finalUserId, message, imageUrl);
+      await sendMessage(finalUserId, message, fileUrl, isVideoFile);
     }
   };
 
@@ -190,30 +269,35 @@ const ChatPage: React.FC<ChatPageProps> = ({ userId }) => {
       {/* Lista de mensajes */}
       {!loading ? (
         <>
-          <div 
+          <div
             ref={chatContainerRef}
             className="flex-1 h-full overflow-y-auto px-4 py-3 space-y-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-gray-800">
             {loadingMore && <div className="text-center text-gray-400">Loading messages...</div>}
+            {!navigator.onLine && !loading && messages.length == 0 && <div className="text-center text-error-red justify-items-center"><span className="flex flex-row gap-3 items-center"><MdOutlineSignalWifiConnectedNoInternet4 /> You don't have an internet connection, try again later</span></div>}
             {Object.entries(groupedMessages).map(([date, messages]) => (
               <div key={date}>
                 {/* Fecha como separador */}
                 <DateSeparator date={date} />
-                {messages.map((msg, index) => (
-                  <MessageBubble
-                    key={index}
-                    text={msg.text}
-                    imageUrl={msg.imageUrl}
-                    isSender={msg.isSender}
-                    timestamp={msg.timestamp}
-                    onImageLoad={handleImageLoad}
-                  />
-                ))}
+                {messages.map((msg, index) => {
+                  return (
+                    <MessageBubble
+                      key={index}
+                      text={msg.text}
+                      imageUrl={msg.imageUrl}
+                      videoUrl={msg.videoUrl}
+                      isSender={msg.isSender}
+                      timestamp={msg.timestamp}
+                      withConnection={msg.isSender ? msg.sended : true}
+                      onImageLoad={handleImageLoad}
+                    />
+                  )
+                })}
               </div>
             ))}
-            {loadingImgUpload ? <MessageBubble text="" imageUrl="" isSender={true} timestamp={new Date()}></MessageBubble> : null}
+            {loadingImgUpload ? <MessageBubble text="" imageUrl="" videoUrl="" isSender={true} timestamp={new Date()} withConnection={true}></MessageBubble> : null}
             <div ref={chatEndRef} />
           </div>
-          
+
           {/* Barra de entrada */}
           <InputBar onSend={handleSendMessage} />
         </>
@@ -224,7 +308,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ userId }) => {
           message={snackbarMessage}
           type={snackbarType}
           onClose={handleSnackbarClose}
-          duration={3000}
+          duration={5000}
         />
       )}
     </div>

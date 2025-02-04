@@ -33,6 +33,10 @@ const AddContactModal: React.FC<AddContactModalProps> = ({ onClose, reloadContac
         return setError("You can't search yourself");
       }
 
+      if (!navigator.onLine) {
+        return setError("You don't have an internet connection, try again later")
+      }
+
       setError("");
 
       const response = await getUserByEmail(email);
