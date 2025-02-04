@@ -223,7 +223,7 @@ const ChatPage: React.FC = () => {
         if (navigator.onLine) {
           showSnackbar("We have problems to send the selected image, please try again", "error");
         } else {
-          showSnackbar("You don't have an internet connection, try again later")
+          showSnackbar("You don't have an internet connection, try again later", "error")
         }
 
         return;
@@ -299,7 +299,7 @@ const ChatPage: React.FC = () => {
           message={snackbarMessage}
           type={snackbarType}
           onClose={handleSnackbarClose}
-          duration={3000}
+          duration={5000}
         />
       )}
     </div>
