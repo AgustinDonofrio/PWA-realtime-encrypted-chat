@@ -276,7 +276,7 @@ export const getLastMessage = async (contactId: string) => {
       messagesRef,
       where("to", "in", [auth.currentUser.uid, contactId]),
       where("from", "in", [auth.currentUser.uid, contactId]),
-      orderBy("creationDate", "asc"),
+      orderBy("creationDate", "desc"),
       limit(1)
     );
 
@@ -300,88 +300,88 @@ export const getLastMessage = async (contactId: string) => {
   }
 };
 
-export const fetchMessagesByPage = async (userId: string, lastVisible: any) => {
-  try {
-    const messagesRef = collection(db, "messages");
-    let queryConstraints: any[] = [
-      where("to", "in", [auth.currentUser?.uid, userId]),
-      where("from", "in", [auth.currentUser?.uid, userId]),
-      orderBy("creationDate", "asc"),
-      //limit(MESSAGE_PER_PAGE),
-    ];
+// export const fetchMessagesByPage = async (userId: string, lastVisible: any) => {
+//   try {
+//     const messagesRef = collection(db, "messages");
+//     let queryConstraints: any[] = [
+//       where("to", "in", [auth.currentUser?.uid, userId]),
+//       where("from", "in", [auth.currentUser?.uid, userId]),
+//       orderBy("creationDate", "asc"),
+//       //limit(MESSAGE_PER_PAGE),
+//     ];
 
-    if (lastVisible) {
-      queryConstraints.push(startAfter(lastVisible)); // Continuar desde el último mensaje visible
-    }
+//     if (lastVisible) {
+//       queryConstraints.push(startAfter(lastVisible)); // Continuar desde el último mensaje visible
+//     }
 
-    const q = query(messagesRef, ...queryConstraints);
-    const querySnapshot = await getDocs(q);
+//     const q = query(messagesRef, ...queryConstraints);
+//     const querySnapshot = await getDocs(q);
 
-    const messages = querySnapshot.docs.map((doc) => {
-      const data = doc.data();
-      if (data.text) {
-        data.text = decryptMessage(data.text);
-      }
+//     const messages = querySnapshot.docs.map((doc) => {
+//       const data = doc.data();
+//       if (data.text) {
+//         data.text = decryptMessage(data.text);
+//       }
 
-      if (data.imageUrl) {
-        data.imageUrl = decryptMessage(data.imageUrl);
-      }
+//       if (data.imageUrl) {
+//         data.imageUrl = decryptMessage(data.imageUrl);
+//       }
 
-      if (data.videoUrl) {
-        data.videoUrl = decryptMessage(data.videoUrl);
-      }
+//       if (data.videoUrl) {
+//         data.videoUrl = decryptMessage(data.videoUrl);
+//       }
 
-      return {
-        text: data.text || "",
-        imageUrl: data.imageUrl || null,
-        videoUrl: data.videoUrl || null,
-        isSender: data.from === auth.currentUser?.uid,
-        timestamp: data.creationDate?.toDate() || new Date(),
-      };
-    });
+//       return {
+//         text: data.text || "",
+//         imageUrl: data.imageUrl || null,
+//         videoUrl: data.videoUrl || null,
+//         isSender: data.from === auth.currentUser?.uid,
+//         timestamp: data.creationDate?.toDate() || new Date(),
+//       };
+//     });
 
-    const lastVisibleDoc = querySnapshot.docs[querySnapshot.docs.length - 1]; // Último mensaje de la página
+//     const lastVisibleDoc = querySnapshot.docs[querySnapshot.docs.length - 1]; // Último mensaje de la página
 
-    return {
-      messages,
-      lastVisible: lastVisibleDoc,
-    };
-  } catch (error) {
-    console.error("Error fetching messages by page:", error);
-    return { messages: [], lastVisible: null };
-  }
-};
+//     return {
+//       messages,
+//       lastVisible: lastVisibleDoc,
+//     };
+//   } catch (error) {
+//     console.error("Error fetching messages by page:", error);
+//     return { messages: [], lastVisible: null };
+//   }
+// };
 
-export const getPreviousMessages = async (userId: string, lastVisible: any) => {
-  if (!auth.currentUser?.uid) return [];
+// export const getPreviousMessages = async (userId: string, lastVisible: any) => {
+//   if (!auth.currentUser?.uid) return [];
 
-  const messagesRef = collection(db, "messages");
+//   const messagesRef = collection(db, "messages");
 
-  const q = query(
-    messagesRef,
-    where("to", "in", [auth.currentUser.uid, userId]),
-    where("from", "in", [auth.currentUser.uid, userId]),
-    orderBy("creationDate", "asc"),
-    startAfter(lastVisible) // Pagina los resultados
-    //limit(MESSAGE_PER_PAGE)
-  );
+//   const q = query(
+//     messagesRef,
+//     where("to", "in", [auth.currentUser.uid, userId]),
+//     where("from", "in", [auth.currentUser.uid, userId]),
+//     orderBy("creationDate", "asc"),
+//     startAfter(lastVisible) // Pagina los resultados
+//     //limit(MESSAGE_PER_PAGE)
+//   );
 
-  const querySnapshot = await getDocs(q);
+//   const querySnapshot = await getDocs(q);
 
-  const messages = querySnapshot.docs.map((doc) => {
-    const data = doc.data();
-    return {
-      id: doc.id,
-      text: data.text ? decryptMessage(data.text) : "",
-      imageUrl: data.imageUrl ? decryptMessage(data.imageUrl) : null,
-      videoUrl: data.videoUrl ? decryptMessage(data.videoUrl) : null,
-      isSender: data.from === auth.currentUser?.uid,
-      timestamp: data.creationDate?.toDate() || new Date(),
-    };
-  });
+//   const messages = querySnapshot.docs.map((doc) => {
+//     const data = doc.data();
+//     return {
+//       id: doc.id,
+//       text: data.text ? decryptMessage(data.text) : "",
+//       imageUrl: data.imageUrl ? decryptMessage(data.imageUrl) : null,
+//       videoUrl: data.videoUrl ? decryptMessage(data.videoUrl) : null,
+//       isSender: data.from === auth.currentUser?.uid,
+//       timestamp: data.creationDate?.toDate() || new Date(),
+//     };
+//   });
 
-  return messages;
-};
+//   return messages;
+// };
 
 export const getMessagesByUser = async (userId: string) => {
   try {

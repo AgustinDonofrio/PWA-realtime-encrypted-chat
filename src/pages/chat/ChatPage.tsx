@@ -4,7 +4,7 @@ import Header from "../../components/header/Header";
 import MessageBubble from "../../components/chat/MessageBubble";
 import InputBar from "../../components/chat/InputBar";
 import { getUserById } from "../../controllers/userController";
-import { subscribeToMessages, sendMessage, fetchMessagesByPage, updateMessageSendedState, sendMessageWithId } from "../../controllers/messageController";
+import { subscribeToMessages, sendMessage, updateMessageSendedState, sendMessageWithId } from "../../controllers/messageController";
 import LoadingPage from "../loading/LoadingPage";
 import { formatDate } from "../../helpers/utils";
 import { uploadToCloudinary } from "../../controllers/cloudinaryController";
@@ -88,6 +88,9 @@ const ChatPage: React.FC<ChatPageProps> = ({ userId }) => {
   // Obtener mensajes en tiempo real
   useEffect(() => {
     if (!finalUserId) return;
+
+    // Limpiar los mensajes antes de cargar los nuevos
+    setMessages([]);
 
     const fetchMessages = async () => {
       if (!navigator.onLine) {
@@ -175,39 +178,6 @@ const ChatPage: React.FC<ChatPageProps> = ({ userId }) => {
       chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [loadingImgUpload, messages]);
-
-  const loadMoreMessages = async () => {
-    if (!finalUserId || !lastVisibleMessage || loadingMore) return;
-
-    setLoadingMore(true);
-
-    const { messages: olderMessages, lastVisible } = await fetchMessagesByPage(finalUserId, lastVisibleMessage);
-
-    if (olderMessages.length > 0) {
-      setMessages((prevMessages) => [...prevMessages, ...olderMessages]);
-      setLastVisibleMessage(lastVisible); // Actualizar el último mensaje visible
-    }
-
-    setLoadingMore(false);
-  };
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!chatContainerRef.current) return;
-
-      if (chatContainerRef.current.scrollTop === 0) {
-        loadMoreMessages(); // Cargar más mensajes si está en la parte superior
-      }
-    };
-
-    const container = chatContainerRef.current;
-    container?.addEventListener("scroll", handleScroll);
-
-    return () => {
-      container?.removeEventListener("scroll", handleScroll);
-    };
-  }, [finalUserId, lastVisibleMessage]);
-
 
   const handleSendMessage = async (message: string, fileToUpload?: File) => {
     let fileUrl = "";
