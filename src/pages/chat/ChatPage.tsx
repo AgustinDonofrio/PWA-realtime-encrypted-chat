@@ -23,7 +23,7 @@ interface ChatPageProps {
 }
 
 const ChatPage: React.FC<ChatPageProps> = ({ userId }) => {
-  const { userId: userIdFromParams } = useParams<{ userId: string}>();
+  const { userId: userIdFromParams } = useParams<{ userId: string }>();
   const finalUserId = userId || userIdFromParams; // Usa el de props (para mobile) o el de params (para desktop)
   const [messages, setMessages] = useState<{ id?: string, from?: string, to?: string, text?: string; imageUrl?: string; videoUrl?: string, isSender: boolean, timestamp: Date, sended?: boolean }[]>([]);
   const [chatUser, setChatUser] = useState<{ name: string; imageUrl: string }>({
@@ -214,6 +214,11 @@ const ChatPage: React.FC<ChatPageProps> = ({ userId }) => {
     let isVideoFile = false;
     if (finalUserId) {
       if (fileToUpload) {
+
+        if (!fileToUpload.type.startsWith("video/") && fileToUpload.type.startsWith("image/")) {
+          return showSnackbar("Invalid file selected")
+        }
+
         setLoadingImgUpload(true);
         isVideoFile = fileToUpload.type.startsWith("video/");
         const fileResult = await uploadToCloudinary(fileToUpload);
@@ -222,8 +227,6 @@ const ChatPage: React.FC<ChatPageProps> = ({ userId }) => {
           fileUrl = fileResult;
         }
         setLoadingImgUpload(false);
-      } else {
-        return showSnackbar("Invalid file selected")
       }
 
       if (fileToUpload && fileUrl.length == 0) {
