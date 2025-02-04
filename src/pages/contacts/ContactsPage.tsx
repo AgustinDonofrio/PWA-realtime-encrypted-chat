@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Header from "../../components/header/Header";
 import ContactList from "../../components/contacts/ContactList";
 import AddContactModal from "../../components/modal/AddContactModal";
@@ -8,7 +9,13 @@ import { getLastMessage, getMessagesByUser, subscribeToLastMessages } from "../.
 import Spinner from "../../components/spinner/Spinner";
 import { saveToIndexedDB, getFromIndexedDB } from "../../controllers/indexDbHelpers"
 
-const ContactsPage: React.FC = () => {
+interface ContactsPageProps {
+  onContactClick?: (contactId: string) => void;
+  onSettingsClick?: () => void;
+}
+
+const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick, onSettingsClick }) => {
+  const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [contacts, setContacts] = useState<
     { name: string; email: string; status: string; profilePicture: string; id: string; lastMessage: string, isFile: boolean, isAgended?: boolean }[]
@@ -18,8 +25,17 @@ const ContactsPage: React.FC = () => {
   >([]);
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
+  const [addingContacts, setAddingContacts] = useState<string[]>([]);
 
-  const fetchContacts = async () => {
+  const handleContactClick = (contactId: string) => {
+  if (onContactClick !== undefined) {
+      onContactClick(contactId); // Llamar a la función del padre (Desktop)
+    } else {
+      navigate(`/chat/${contactId}`); // Navegar a la página de chat (Mobile)
+    }
+  };
+
+  const fetchContacts = async (showLoading = true) => {
     try {
       setLoading(true);
 
@@ -118,7 +134,9 @@ const ContactsPage: React.FC = () => {
     } catch (error) {
       console.error("Error obteniendo contactos:", error);
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   };
 
@@ -126,6 +144,7 @@ const ContactsPage: React.FC = () => {
     fetchContacts();
   }, []);
 
+  // Suscribirse a los últimos mensajes
   useEffect(() => {
     if (!auth.currentUser?.uid) return;
 
@@ -156,7 +175,7 @@ const ContactsPage: React.FC = () => {
                 email: userDoc.email || "",
                 lastMessage: message.text || "",
                 isFile: message.isFile || false,
-                isAgended: false,
+                isAgended: false, // Marcar como no agendado
               });
             }
           }
@@ -171,6 +190,7 @@ const ContactsPage: React.FC = () => {
 
 
   const handleAddContact = async (contactId: string) => {
+    setAddingContacts(prev => [...prev, contactId]);
     try {
       const userToAdd = await getUserById(contactId);
       if (userToAdd) {
@@ -182,14 +202,15 @@ const ContactsPage: React.FC = () => {
           profilePicture: userToAdd.profilePicture,
           contacts: {},
         });
-        await fetchContacts(); // Recargar la lista de contactos
+        await fetchContacts(false);
       }
     } catch (error) {
       console.error("Error adding contact:", error);
+    } finally {
+      setAddingContacts(prev => prev.filter(id => id !== contactId));
     }
   };
 
-  // Filtrar contactos cuando cambia el texto de búsqueda
   useEffect(() => {
     if (!searchText.trim()) {
       setFilteredContacts(contacts);
@@ -207,8 +228,10 @@ const ContactsPage: React.FC = () => {
   return (
     <div className="h-full w-full mx-auto bg-main-color flex flex-col relative shadow-lg">
       <Header
+        leftButton="logo"
         title="BlueCrypt"
         rightButton="settings"
+        onSettingsClick={onSettingsClick}
       />
       {loading ? (
         <Spinner />
@@ -219,6 +242,8 @@ const ContactsPage: React.FC = () => {
             onAddContact={handleAddContact}
             withoutContactAction={() => setShowModal(true)}
             onSearch={(text) => setSearchText(text)}
+            onContactClick={handleContactClick}
+            addingContacts={addingContacts}
           />
           {contacts.length > 0 && (
             <button
@@ -238,8 +263,9 @@ const ContactsPage: React.FC = () => {
               onClose={() => setShowModal(false)}
               reloadContactList={fetchContacts}
             />
-          )}</>)}
-
+          )}
+        </>
+      )}
     </div>
   );
 };

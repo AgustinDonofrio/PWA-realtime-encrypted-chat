@@ -1,14 +1,17 @@
 import React, { useState } from "react";
 import { FiArrowLeft, FiSettings, FiLogOut } from "react-icons/fi";
 import { FaUser } from "react-icons/fa";
+import { LuMessageSquareText } from "react-icons/lu"
 import { useNavigate } from "react-router-dom";
 import { logout } from "../../controllers/authController";
 
 interface HeaderProps {
   title: string;
-  leftButton?: "back";
+  leftButton?: "back" | "logo" | "message";
   rightButton?: "settings" | "logout" | "profile"; 
   profileImageUrl?: string; // Imagen de perfil (solo relevante si el botón derecho es "profile")
+  onSettingsClick?: () => void;
+  onMessageClick?: () => void; // Para manejar el click en el ícono "message"
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -16,15 +19,22 @@ const Header: React.FC<HeaderProps> = ({
   leftButton,
   rightButton,
   profileImageUrl,
+  onSettingsClick,
+  onMessageClick,
 }) => {
   const navigate = useNavigate();
   const [showConfirmLogout, setShowConfirmLogout] = useState(false); // Estado para mostrar u ocultar el cartel de confirmación
+  const isDesktop = window.innerWidth > 768;
 
-  const handleNavigate = (destination: "back" | "settings") => {
+  const handleNavigate = (destination: "back" | "settings" | "message") => {
     if (destination === "back") {
-      navigate(-1); // Retrocede en la navegación
-    } else {
+      navigate("/contacts");
+    } else if (destination === "message") {
+      onMessageClick?.();
+    }else if (!isDesktop) {
       navigate("/settings");
+    } else {
+      onSettingsClick?.();
     }
   };
 
@@ -42,15 +52,36 @@ const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 bg-main-color border-b-2 border-gray-600">
+    <div className={`flex items-center justify-between px-4 py-3 bg-main-color ${isDesktop ? "" : "border-b-2"} border-gray-600 h-16`}>
       {/* Botón izquierdo */}
-      {leftButton === "back" && (
+      {!isDesktop && leftButton === "back" && (
         <button
           onClick={() => handleNavigate("back")}
-          className="text-white text-2xl hover:text-gray-300 focus:outline-none"
+          className="text-white text-2xl hover:text-gray-300 place-items-center focus:outline-none w-10 h-10"
         >
           <FiArrowLeft className="text-white bg-main-color" />
         </button>
+      )}
+
+      {leftButton === "logo" && (
+        <img
+          src="/images/logo.png"
+          alt="Logo"
+          className="w-10 h-10 rounded-full"
+        />
+      )}
+
+      {leftButton === "message" && (
+        <button
+          onClick={() => handleNavigate("message")}
+          className="text-white text-2xl hover:text-gray-300 place-items-center focus:outline-none w-10 h-10"
+        >
+          <LuMessageSquareText className="text-white bg-main-color" />
+        </button>
+      )}
+
+      {isDesktop && leftButton !== "back" || leftButton !== "logo" && (
+        <div className="w-10 h-10"></div>
       )}
 
       {/* Título */}
@@ -62,16 +93,16 @@ const Header: React.FC<HeaderProps> = ({
       {rightButton === "settings" && (
         <button
           onClick={() => handleNavigate("settings")}
-          className="text-white text-2xl hover:text-gray-300 focus:outline-none"
+          className="text-white text-2xl hover:text-gray-300 place-items-center focus:outline-none w-10 h-10"
         >
-          <FiSettings className="text-white bg-main-color" />
+          <FiSettings className="text-white bg-main-color " />
         </button>
       )}
 
       {rightButton === "logout" && (
         <button
           onClick={() => setShowConfirmLogout(true)} // Mostrar el cartel de confirmación
-          className="text-white text-2xl hover:text-gray-300 focus:outline-none"
+          className="text-white text-2xl hover:text-gray-300 place-items-center focus:outline-none w-10 h-10"
         >
           <FiLogOut className="text-red-500 bg-main-color" />
         </button>

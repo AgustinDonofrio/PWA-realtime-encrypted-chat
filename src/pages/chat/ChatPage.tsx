@@ -18,8 +18,13 @@ const DateSeparator: React.FC<{ date: string }> = ({ date }) => (
   </div>
 );
 
-const ChatPage: React.FC = () => {
-  const { userId } = useParams();
+interface ChatPageProps {
+  userId?: string;
+}
+
+const ChatPage: React.FC<ChatPageProps> = ({ userId }) => {
+  const { userId: userIdFromParams } = useParams<{ userId: string}>();
+  const finalUserId = userId || userIdFromParams; // Usa el de props (para mobile) o el de params (para desktop)
   const [messages, setMessages] = useState<{ id?: string, from?: string, to?: string, text?: string; imageUrl?: string; videoUrl?: string, isSender: boolean, timestamp: Date, sended?: boolean }[]>([]);
   const [chatUser, setChatUser] = useState<{ name: string; imageUrl: string }>({
     name: "",
@@ -53,20 +58,20 @@ const ChatPage: React.FC = () => {
 
   // Obtener los datos del usuario con el que se está chateando
   useEffect(() => {
-    if (!userId) return;
+    if (!finalUserId) return;
 
     const fetchChatUser = async () => {
       try {
         let userData: any
         if (navigator.onLine) {
-          userData = await getUserById(userId);
+          userData = await getUserById(finalUserId);
         } else {
-          userData = await getFromIndexedDbById("contacts", userId);
+          userData = await getFromIndexedDbById("contacts", finalUserId);
         }
 
         if (userData) {
           setChatUser({
-            name: userData.name || "Unknown User",
+            name: userData.name,
             imageUrl: userData.profilePicture || "",
           });
         }
@@ -78,11 +83,11 @@ const ChatPage: React.FC = () => {
     };
 
     fetchChatUser();
-  }, [userId]);
+  }, [finalUserId]);
 
   // Obtener mensajes en tiempo real
   useEffect(() => {
-    if (!userId) return;
+    if (!finalUserId) return;
 
     const fetchMessages = async () => {
       if (!navigator.onLine) {
@@ -90,7 +95,7 @@ const ChatPage: React.FC = () => {
         const allMessages = await getFromIndexedDB("messages");
 
         // Filtrar mensajes por el userId correspondiente
-        const filteredMessages = allMessages.filter((msg) => msg.from === userId || msg.to === userId);
+        const filteredMessages = allMessages.filter((msg) => msg.from === finalUserId || msg.to === finalUserId);
 
         filteredMessages.sort((a, b) => a.timestamp - b.timestamp);
 
@@ -103,7 +108,7 @@ const ChatPage: React.FC = () => {
     }
 
 
-    const unsubscribe = subscribeToMessages(userId, async (newMessages) => {
+    const unsubscribe = subscribeToMessages(finalUserId, async (newMessages) => {
 
       for (const newMsg of newMessages) {
 
@@ -137,17 +142,17 @@ const ChatPage: React.FC = () => {
         unsubscribe();
       }
     };
-  }, [userId]);
+  }, [finalUserId]);
 
   useEffect(() => {
     const handleOnline = async () => {
-      if (navigator.onLine && userId) {
+      if (navigator.onLine && finalUserId) {
         // Verificar y actualizar el estado de los mensajes no enviados
         const unsentMessages = messages.filter((msg) => !msg.sended && msg.sended !== undefined);
 
         for (const msg of unsentMessages) {
           if (msg.id) {
-            await sendMessageWithId(msg.id, userId, msg.text, msg.imageUrl, msg.videoUrl)
+            await sendMessageWithId(msg.id, finalUserId, msg.text, msg.imageUrl, msg.videoUrl)
           }
         }
       }
@@ -172,11 +177,11 @@ const ChatPage: React.FC = () => {
   }, [loadingImgUpload, messages]);
 
   const loadMoreMessages = async () => {
-    if (!userId || !lastVisibleMessage || loadingMore) return;
+    if (!finalUserId || !lastVisibleMessage || loadingMore) return;
 
     setLoadingMore(true);
 
-    const { messages: olderMessages, lastVisible } = await fetchMessagesByPage(userId, lastVisibleMessage);
+    const { messages: olderMessages, lastVisible } = await fetchMessagesByPage(finalUserId, lastVisibleMessage);
 
     if (olderMessages.length > 0) {
       setMessages((prevMessages) => [...prevMessages, ...olderMessages]);
@@ -201,13 +206,13 @@ const ChatPage: React.FC = () => {
     return () => {
       container?.removeEventListener("scroll", handleScroll);
     };
-  }, [userId, lastVisibleMessage]);
+  }, [finalUserId, lastVisibleMessage]);
 
 
   const handleSendMessage = async (message: string, fileToUpload?: File) => {
     let fileUrl = "";
     let isVideoFile = false;
-    if (userId) {
+    if (finalUserId) {
       if (fileToUpload) {
         setLoadingImgUpload(true);
         isVideoFile = fileToUpload.type.startsWith("video/");
@@ -232,7 +237,7 @@ const ChatPage: React.FC = () => {
         return;
       }
 
-      await sendMessage(userId, message, fileUrl, isVideoFile);
+      await sendMessage(finalUserId, message, fileUrl, isVideoFile);
     }
   };
 

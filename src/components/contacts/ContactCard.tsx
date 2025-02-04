@@ -1,7 +1,7 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import { FaUser, FaPlus, FaBan } from "react-icons/fa";
 import { FaCamera, FaVideo } from "react-icons/fa";
+import Spinner from "../spinner/Spinner";
 
 interface ContactCardProps {
   name: string;
@@ -12,16 +12,17 @@ interface ContactCardProps {
   lastMessage?: string; // Último mensaje enviado o recibido
   isFile?: boolean; // Si el último mensaje es un archivo
   isAgended?: boolean; // Indica si el usuario está en la lista de contactos
+  isAdding?: boolean; // Indica si se está añadiendo el contacto
   onAddContact?: (id: string) => void; // Función para agregar un contacto no agendado
+  onClick?: (id: string) => void;
 }
 
-const ContactCard: React.FC<ContactCardProps> = ({ name, email, status, profilePicture, id, lastMessage, isFile, isAgended, onAddContact }) => {
-  const navigate = useNavigate();
+const ContactCard: React.FC<ContactCardProps> = ({ name, email, status, profilePicture, id, lastMessage, isFile, isAgended, onAddContact, onClick, isAdding }) => {
 
   return (
     <div
       className="flex items-center gap-4 p-2.5 ml-4 mr-4 mt-2 hover:bg-steel rounded-lg cursor-pointer"
-      onClick={() => navigate(`/chat/${id}`)}
+      onClick={() => onClick?.(id)}
     >
       {/* Imagen/ícono del contacto */}
       <div className="w-12 h-12 min-w-12 min-h-12 rounded-full overflow-hidden bg-gray-500 flex items-center justify-center">
@@ -71,10 +72,11 @@ const ContactCard: React.FC<ContactCardProps> = ({ name, email, status, profileP
               e.stopPropagation(); // Evitar que se active el onClick del contenedor
               onAddContact?.(id);
             }}
-            className="p-2 bg-green-600 text-white rounded-full hover:bg-green-500"
-            title="Agregar contacto"
+            className="p-2 bg-green-600 text-white rounded-full hover:bg-green-500 flex items-center justify-center"
+            title="Add contact"
+            disabled={isAdding}
           >
-            <FaPlus />
+            {isAdding ? <Spinner size={20} color="#A3D4FF"/> : <FaPlus />}
           </button>
         </div>
       )}

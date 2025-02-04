@@ -136,7 +136,7 @@ export const subscribeToLastMessages = (
   const messagesQuery = query(
     messagesRef,
     or(where("to", "==", userId), where("from", "==", userId)), // Ahora escucha tanto enviados como recibidos
-    orderBy("creationDate", "asc"),
+    orderBy("creationDate", "desc"),
     limit(1) // Solo el último mensaje
   );
 

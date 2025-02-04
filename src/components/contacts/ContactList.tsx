@@ -18,9 +18,11 @@ interface ContactListProps {
   onAddContact: (id: string) => void; // Función para manejar la acción de añadir contactos
   onSearch: (text: string) => void; // Función para manejar la búsqueda de contactos
   withoutContactAction: () => void;
+  onContactClick: (contactId: string) => void;
+  addingContacts: string[];
 }
 
-const ContactList: React.FC<ContactListProps> = ({ contacts, onAddContact, withoutContactAction, onSearch }) => {
+const ContactList: React.FC<ContactListProps> = ({ contacts, onAddContact, withoutContactAction, onSearch, onContactClick, addingContacts }) => {
   const [isSearching, setIsSearching] = useState(false);
   const hasContacts = contacts.length > 0;
 
@@ -62,6 +64,8 @@ const ContactList: React.FC<ContactListProps> = ({ contacts, onAddContact, witho
                 isFile={contact.isFile}
                 isAgended={contact.isAgended}
                 onAddContact={onAddContact}
+                onClick={onContactClick}
+                isAdding={addingContacts.includes(contact.id)}
               />
             ))
           ) : (
