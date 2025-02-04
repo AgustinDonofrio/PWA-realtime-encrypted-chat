@@ -216,7 +216,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ userId }) => {
       if (fileToUpload) {
 
         if (!fileToUpload.type.startsWith("video/") && !fileToUpload.type.startsWith("image/")) {
-          return showSnackbar("Invalid file selected")
+          return showSnackbar("Invalid file selected", "error")
         }
 
         setLoadingImgUpload(true);
