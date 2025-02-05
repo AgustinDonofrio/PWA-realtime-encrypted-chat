@@ -121,11 +121,11 @@ export const addContactToUser = async (
 
     const userRef = doc(db, "users", userId);
     await updateDoc(userRef, {
-      [`contacts.${userToAdd?.uid}`]: {
-        name: userToAdd?.name,
-        email: userToAdd?.email,
-        status: userToAdd?.status || "",
-        profilePicture: userToAdd?.profilePicture || "",
+      [`contacts.${userToAdd.uid}`]: {
+        name: userToAdd.name,
+        email: userToAdd.email,
+        status: userToAdd.status || "",
+        profilePicture: userToAdd.profilePicture || "",
       },
     });
 

@@ -15,14 +15,14 @@ interface Contact {
 
 interface ContactListProps {
   contacts: Contact[];
+  addingContacts: string[];
   onAddContact: (id: string) => void; // Función para manejar la acción de añadir contactos
   onSearch: (text: string) => void; // Función para manejar la búsqueda de contactos
   withoutContactAction: () => void;
   onContactClick: (contactId: string) => void;
-  addingContacts: string[];
 }
 
-const ContactList: React.FC<ContactListProps> = ({ contacts, onAddContact, withoutContactAction, onSearch, onContactClick, addingContacts }) => {
+const ContactList: React.FC<ContactListProps> = ({ contacts, addingContacts, onAddContact, withoutContactAction, onSearch, onContactClick }) => {
   const [isSearching, setIsSearching] = useState(false);
   const hasContacts = contacts.length > 0;
 

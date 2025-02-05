@@ -28,7 +28,6 @@ import {
 } from "../helpers/utils";
 
 const storage = getStorage();
-const MESSAGE_PER_PAGE = 30;
 
 export const uploadImage = async (
   file: File,
@@ -91,7 +90,6 @@ export const subscribeToMessages = (
       where("to", "in", [auth.currentUser?.uid, userId]),
       where("from", "in", [auth.currentUser?.uid, userId]),
       orderBy("creationDate", "asc")
-      //limit(MESSAGE_PER_PAGE)
     );
 
     // Escuchar los cambios en tiempo real
@@ -137,23 +135,17 @@ export const subscribeToLastMessages = (
     messagesRef,
     or(where("to", "==", userId), where("from", "==", userId)), // Ahora escucha tanto enviados como recibidos
     orderBy("creationDate", "desc"),
-    limit(1) // Solo el último mensaje
+    limit(1)
   );
 
   const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
     const messages = snapshot.docs.map((doc) => {
       const data = doc.data();
-      if (data.text) {
-        data.text = decryptMessage(data.text);
-      }
+      if (data.text) data.text = decryptMessage(data.text);
 
-      if (data.imageUrl) {
-        data.imageUrl = decryptMessage(data.imageUrl);
-      }
+      if (data.imageUrl) data.imageUrl = decryptMessage(data.imageUrl);
 
-      if (data.videoUrl) {
-        data.videoUrl = decryptMessage(data.videoUrl);
-      }
+      if (data.videoUrl) data.videoUrl = decryptMessage(data.videoUrl);
 
       return {
         id: doc.id,
@@ -299,89 +291,6 @@ export const getLastMessage = async (contactId: string) => {
     return null;
   }
 };
-
-// export const fetchMessagesByPage = async (userId: string, lastVisible: any) => {
-//   try {
-//     const messagesRef = collection(db, "messages");
-//     let queryConstraints: any[] = [
-//       where("to", "in", [auth.currentUser?.uid, userId]),
-//       where("from", "in", [auth.currentUser?.uid, userId]),
-//       orderBy("creationDate", "asc"),
-//       //limit(MESSAGE_PER_PAGE),
-//     ];
-
-//     if (lastVisible) {
-//       queryConstraints.push(startAfter(lastVisible)); // Continuar desde el último mensaje visible
-//     }
-
-//     const q = query(messagesRef, ...queryConstraints);
-//     const querySnapshot = await getDocs(q);
-
-//     const messages = querySnapshot.docs.map((doc) => {
-//       const data = doc.data();
-//       if (data.text) {
-//         data.text = decryptMessage(data.text);
-//       }
-
-//       if (data.imageUrl) {
-//         data.imageUrl = decryptMessage(data.imageUrl);
-//       }
-
-//       if (data.videoUrl) {
-//         data.videoUrl = decryptMessage(data.videoUrl);
-//       }
-
-//       return {
-//         text: data.text || "",
-//         imageUrl: data.imageUrl || null,
-//         videoUrl: data.videoUrl || null,
-//         isSender: data.from === auth.currentUser?.uid,
-//         timestamp: data.creationDate?.toDate() || new Date(),
-//       };
-//     });
-
-//     const lastVisibleDoc = querySnapshot.docs[querySnapshot.docs.length - 1]; // Último mensaje de la página
-
-//     return {
-//       messages,
-//       lastVisible: lastVisibleDoc,
-//     };
-//   } catch (error) {
-//     console.error("Error fetching messages by page:", error);
-//     return { messages: [], lastVisible: null };
-//   }
-// };
-
-// export const getPreviousMessages = async (userId: string, lastVisible: any) => {
-//   if (!auth.currentUser?.uid) return [];
-
-//   const messagesRef = collection(db, "messages");
-
-//   const q = query(
-//     messagesRef,
-//     where("to", "in", [auth.currentUser.uid, userId]),
-//     where("from", "in", [auth.currentUser.uid, userId]),
-//     orderBy("creationDate", "asc"),
-//     startAfter(lastVisible) // Pagina los resultados
-//     //limit(MESSAGE_PER_PAGE)
-//   );
-
-//   const querySnapshot = await getDocs(q);
-
-//   const messages = querySnapshot.docs.map((doc) => {
-//     const data = doc.data();
-//     return {
-//       id: doc.id,
-//       text: data.text ? decryptMessage(data.text) : "",
-//       imageUrl: data.imageUrl ? decryptMessage(data.imageUrl) : null,
-//       videoUrl: data.videoUrl ? decryptMessage(data.videoUrl) : null,
-//       isSender: data.from === auth.currentUser?.uid,
-//       timestamp: data.creationDate?.toDate() || new Date(),
-//     };
-//   });
-
-//   return messages;
-// };
 
 export const getMessagesByUser = async (userId: string) => {
   try {

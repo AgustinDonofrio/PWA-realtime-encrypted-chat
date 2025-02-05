@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../../components/header/Header";
 import ContactList from "../../components/contacts/ContactList";
 import AddContactModal from "../../components/modal/AddContactModal";
 import { auth } from "../../firebase/firebase.config";
-import { getUserByEmail, getLoggedEmail, getUserById, addContactToUser } from "../../controllers/userController";
+import { getUserByEmail, getLoggedEmail, getUserById, addContactToUser, subscribeToContacts } from "../../controllers/userController";
 import { getLastMessage, getMessagesByUser, subscribeToLastMessages } from "../../controllers/messageController";
 import Spinner from "../../components/spinner/Spinner";
 import { saveToIndexedDB, getFromIndexedDB } from "../../controllers/indexDbHelpers"
@@ -35,9 +35,16 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick, onSettingsC
     }
   };
 
+  const contactsRef = useRef(contacts);
+  useEffect(() => {
+    contactsRef.current = contacts;
+  }, [contacts]);
+
   const fetchContacts = async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) {
+        setLoading(true);
+      }
 
       console.log(navigator.onLine)
       if (!navigator.onLine) {
@@ -145,52 +152,130 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick, onSettingsC
   }, []);
 
   // Suscribirse a los últimos mensajes
+  // useEffect(() => {
+  //   if (!auth.currentUser?.uid) return;
+
+  //   const unsubscribe = subscribeToLastMessages(auth.currentUser.uid, async (newMessages) => {
+  //     setContacts((prevContacts) => {
+  //       const updatedContacts = [...prevContacts];
+
+  //       newMessages.forEach(async (message) => {
+  //         const existingContact = updatedContacts.find(
+  //           (contact) => contact.id === message.from || contact.id === message.to
+  //         );
+
+  //         if (existingContact) {
+  //           // Si el contacto ya existe, actualiza su último mensaje
+  //           existingContact.lastMessage = message.text || "";
+  //           existingContact.isFile = message.isFile || false;
+  //         } else {
+  //           // Si no existe, obtén sus datos y agrégalo
+  //           const newUserId = message.from === auth.currentUser?.uid ? message.to : message.from;
+  //           const userDoc = await getUserById(newUserId);
+
+  //           if (userDoc) {
+  //             updatedContacts.push({
+  //               id: newUserId,
+  //               name: userDoc.name || "Unknown",
+  //               status: userDoc.status || "",
+  //               profilePicture: userDoc.profilePicture || "",
+  //               email: userDoc.email || "",
+  //               lastMessage: message.text || "",
+  //               isFile: message.isFile || false,
+  //               isAgended: false, // Marcar como no agendado
+  //             });
+  //           }
+  //         }
+  //       });
+
+  //       return [...updatedContacts];
+  //     });
+  //   });
+
+  //   return () => unsubscribe();
+  // }, []);
+
+
   useEffect(() => {
     if (!auth.currentUser?.uid) return;
 
-    const unsubscribe = subscribeToLastMessages(auth.currentUser.uid, async (newMessages) => {
-      setContacts((prevContacts) => {
-        const updatedContacts = [...prevContacts];
+    const unsubscribe = subscribeToLastMessages(auth.currentUser.uid, (newMessages) => {
+      newMessages.forEach(async (message) => {
+        const currentUserId = auth.currentUser?.uid;
+        if (!currentUserId) return;
 
-        newMessages.forEach(async (message) => {
-          const existingContact = updatedContacts.find(
-            (contact) => contact.id === message.from || contact.id === message.to
+        // Determinar el ID del otro usuario
+        const otherUserId = message.from === currentUserId ? message.to : message.from;
+
+        // Verificar si el contacto ya existe usando la referencia
+        const existingContact = contactsRef.current.find(c => c.id === otherUserId);
+
+        if (existingContact) {
+          // Actualizar último mensaje
+          setContacts(prev => 
+            prev.map(c => 
+              c.id === otherUserId 
+                ? { ...c, lastMessage: message.text || "", isFile: message.isFile || false }
+                : c
+            )
           );
-
-          if (existingContact) {
-            // Si el contacto ya existe, actualiza su último mensaje
-            existingContact.lastMessage = message.text || "";
-            existingContact.isFile = message.isFile || false;
-          } else {
-            // Si no existe, obtén sus datos y agrégalo
-            const newUserId = message.from === auth.currentUser?.uid ? message.to : message.from;
-            const userDoc = await getUserById(newUserId);
-
+        } else {
+          // Obtener datos del nuevo usuario
+          try {
+            const userDoc = await getUserById(otherUserId);
             if (userDoc) {
-              updatedContacts.push({
-                id: newUserId,
+              const newContact = {
+                id: otherUserId,
                 name: userDoc.name || "Unknown",
                 status: userDoc.status || "",
                 profilePicture: userDoc.profilePicture || "",
                 email: userDoc.email || "",
                 lastMessage: message.text || "",
                 isFile: message.isFile || false,
-                isAgended: false, // Marcar como no agendado
-              });
+                isAgended: false,
+              };
+              
+              // Guardar en IndexedDB
+              await saveToIndexedDB("contacts", newContact);
+              
+              // Actualizar estado
+              setContacts(prev => [...prev, newContact]);
             }
+          } catch (error) {
+            console.error("Error al obtener datos del usuario:", error);
           }
-        });
-
-        return [...updatedContacts];
+        }
       });
     });
 
     return () => unsubscribe();
   }, []);
 
+  // Suscribirse a cambios en los contactos del usuario actual
+  useEffect(() => {
+    if (!auth.currentUser?.uid) return;
+  
+    // Suscribirse a cambios en los contactos del usuario actual
+    const unsubscribeContacts = subscribeToContacts(auth.currentUser.uid, (contacts) => {
+      // Actualizar la lista de contactos en el estado
+      setContacts((prevContacts) => {
+        const updatedContacts = prevContacts.map((contact) => {
+          if (contacts[contact.id]) {
+            // Si el contacto está en la lista actualizada, marcarlo como agendado
+            return { ...contact, isAgended: true };
+          }
+          return contact;
+        });
+        return updatedContacts;
+      });
+    });
+  
+    // Limpiar la suscripción al desmontar el componente
+    return () => unsubscribeContacts();
+  }, [auth.currentUser?.uid]);
 
   const handleAddContact = async (contactId: string) => {
-    setAddingContacts(prev => [...prev, contactId]);
+    setAddingContacts((prev) => [...prev, contactId]);
     try {
       const userToAdd = await getUserById(contactId);
       if (userToAdd) {
@@ -207,10 +292,11 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick, onSettingsC
     } catch (error) {
       console.error("Error adding contact:", error);
     } finally {
-      setAddingContacts(prev => prev.filter(id => id !== contactId));
+      setAddingContacts((prev) => prev.filter(id => id !== contactId));
     }
   };
 
+  // Filtrar contactos cuando cambia el texto de búsqueda
   useEffect(() => {
     if (!searchText.trim()) {
       setFilteredContacts(contacts);
