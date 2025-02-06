@@ -66,6 +66,8 @@ const App: React.FC = () => {
                 <UserSettings />
               </PrivateRoute>
             } />
+
+            <Route path="*" element={<Navigate to="/" replace />} />
           </>
         )}
       </Routes>
