@@ -39,10 +39,10 @@ const ContactCard: React.FC<ContactCardProps> = ({ name, email, status, profileP
 
       {/* Detalles del contacto */}
       <div className="line-clamp-3">
-        <h2 className="text-white font-medium">
+        <h2 className="text-white font-medium truncate">
           {isAgended ? name : email}
         </h2>
-        <p className="text-gray-400 text-sm">
+        <p className="text-gray-400 text-sm truncate">
           {lastMessage && isAgended ? (
             isFile ? (
               <FaCamera className="inline-block text-gray-400" />
@@ -76,7 +76,7 @@ const ContactCard: React.FC<ContactCardProps> = ({ name, email, status, profileP
             title="Add contact"
             disabled={isAdding}
           >
-            {isAdding ? <Spinner size={20} color="#A3D4FF"/> : <FaPlus />}
+            {isAdding ? <Spinner size={20} color="#A3D4FF" /> : <FaPlus />}
           </button>
         </div>
       )}
