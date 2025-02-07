@@ -13,7 +13,6 @@ import {
   limit,
   or,
   Timestamp,
-  startAfter,
 } from "firebase/firestore";
 import {
   getStorage,
@@ -149,6 +148,7 @@ export const subscribeToLastMessages = (
 
       return {
         id: doc.id,
+        creationDate: data.creationDate?.toDate() || new Date(),
         ...data,
       };
     });
