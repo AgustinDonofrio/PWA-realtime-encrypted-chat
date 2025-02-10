@@ -18,11 +18,24 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick, onSettingsC
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [contacts, setContacts] = useState<
-    { name: string; email: string; status: string; profilePicture: string; id: string; lastMessage: string, isFile: boolean, isAgended?: boolean }[]
-  >([]);
+    { name: string; 
+      email: string; 
+      status: string; 
+      profilePicture: string; 
+      id: string; 
+      lastMessage: string; 
+      isFile: boolean; 
+      isAgended?: boolean;
+      lastMessageDate?: Date;
+     }[]>([]);
   const [filteredContacts, setFilteredContacts] = useState<
-    { name: string; email: string; status: string; profilePicture: string; id: string }[]
-  >([]);
+    { name: string; 
+      email: string; 
+      status: string; 
+      profilePicture: string; 
+      id: string;  
+      lastMessageDate?: Date;
+    }[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
   const [addingContacts, setAddingContacts] = useState<string[]>([]);
@@ -36,15 +49,14 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick, onSettingsC
   };
 
   const contactsRef = useRef(contacts);
+
   useEffect(() => {
     contactsRef.current = contacts;
   }, [contacts]);
 
   const fetchContacts = async (showLoading = true) => {
     try {
-      if (showLoading) {
-        setLoading(true);
-      }
+      if (showLoading) setLoading(true);
 
       console.log(navigator.onLine)
       if (!navigator.onLine) {
@@ -87,12 +99,10 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick, onSettingsC
       // Extraer IDs de usuarios con los que se ha intercambiado mensajes
       const messageUserIds = new Set<string>();
       messages.forEach((message) => {
-        if (message.from !== auth.currentUser?.uid) {
-          messageUserIds.add(message.from);
-        }
-        if (message.to !== auth.currentUser?.uid) {
-          messageUserIds.add(message.to);
-        }
+        if (message.from !== auth.currentUser?.uid) messageUserIds.add(message.from);
+        
+        if (message.to !== auth.currentUser?.uid) messageUserIds.add(message.to);
+  
       });
 
       // Combinar IDs de contactos agendados y de mensajes
@@ -115,6 +125,7 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick, onSettingsC
                 lastMessage: lastMessage?.text || "",
                 isFile: lastMessage?.isFile || false,
                 isAgended: true,
+                lastMessageDate: lastMessage?.creationDate?.toDate ? lastMessage.creationDate.toDate() : new Date(lastMessage?.creationDate || 0),
               };
             } else {
               const userDoc = await getUserById(userId);
@@ -127,10 +138,14 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick, onSettingsC
                 lastMessage: lastMessage?.text || "",
                 isFile: lastMessage?.isFile || false,
                 isAgended: false,
+                lastMessageDate: lastMessage?.creationDate?.toDate ? lastMessage.creationDate.toDate() : new Date(lastMessage?.creationDate || 0),
               };
             }
           })
       );
+
+      // Ordenar contactos por la fecha del último mensaje (más reciente primero)
+      contactsData.sort((a, b) => (b.lastMessageDate?.getTime() || 0) - (a.lastMessageDate?.getTime() || 0));
 
       for (const contactItem of contactsData) {
         await saveToIndexedDB("contacts", contactItem)
@@ -141,9 +156,8 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick, onSettingsC
     } catch (error) {
       console.error("Error obteniendo contactos:", error);
     } finally {
-      if (showLoading) {
-        setLoading(false);
-      }
+      if (showLoading) setLoading(false);
+      
     }
   };
 
@@ -152,75 +166,36 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick, onSettingsC
   }, []);
 
   // Suscribirse a los últimos mensajes
-  // useEffect(() => {
-  //   if (!auth.currentUser?.uid) return;
-
-  //   const unsubscribe = subscribeToLastMessages(auth.currentUser.uid, async (newMessages) => {
-  //     setContacts((prevContacts) => {
-  //       const updatedContacts = [...prevContacts];
-
-  //       newMessages.forEach(async (message) => {
-  //         const existingContact = updatedContacts.find(
-  //           (contact) => contact.id === message.from || contact.id === message.to
-  //         );
-
-  //         if (existingContact) {
-  //           // Si el contacto ya existe, actualiza su último mensaje
-  //           existingContact.lastMessage = message.text || "";
-  //           existingContact.isFile = message.isFile || false;
-  //         } else {
-  //           // Si no existe, obtén sus datos y agrégalo
-  //           const newUserId = message.from === auth.currentUser?.uid ? message.to : message.from;
-  //           const userDoc = await getUserById(newUserId);
-
-  //           if (userDoc) {
-  //             updatedContacts.push({
-  //               id: newUserId,
-  //               name: userDoc.name || "Unknown",
-  //               status: userDoc.status || "",
-  //               profilePicture: userDoc.profilePicture || "",
-  //               email: userDoc.email || "",
-  //               lastMessage: message.text || "",
-  //               isFile: message.isFile || false,
-  //               isAgended: false, // Marcar como no agendado
-  //             });
-  //           }
-  //         }
-  //       });
-
-  //       return [...updatedContacts];
-  //     });
-  //   });
-
-  //   return () => unsubscribe();
-  // }, []);
-
-
   useEffect(() => {
     if (!auth.currentUser?.uid) return;
-
+  
     const unsubscribe = subscribeToLastMessages(auth.currentUser.uid, (newMessages) => {
       newMessages.forEach(async (message) => {
         const currentUserId = auth.currentUser?.uid;
         if (!currentUserId) return;
-
-        // Determinar el ID del otro usuario
+  
         const otherUserId = message.from === currentUserId ? message.to : message.from;
-
-        // Verificar si el contacto ya existe usando la referencia
+  
         const existingContact = contactsRef.current.find(c => c.id === otherUserId);
-
+  
         if (existingContact) {
-          // Actualizar último mensaje
-          setContacts(prev => 
-            prev.map(c => 
+          // Actualizar último mensaje y fecha
+          setContacts(prev => {
+            const updatedContacts = prev.map(c => 
               c.id === otherUserId 
-                ? { ...c, lastMessage: message.text || "", isFile: message.isFile || false }
+                ? { 
+                  ...c, 
+                  lastMessage: message.text || "", 
+                  isFile: message.isFile || false, 
+                  lastMessageDate: message.creationDate?.toDate ? message.creationDate.toDate() : new Date(message.creationDate || 0) 
+                }
                 : c
-            )
-          );
+            );
+            // Ordenar por fecha descendente
+            updatedContacts.sort((a, b) => (b.lastMessageDate?.getTime() || 0) - (a.lastMessageDate?.getTime() || 0));
+            return updatedContacts;
+          });          
         } else {
-          // Obtener datos del nuevo usuario
           try {
             const userDoc = await getUserById(otherUserId);
             if (userDoc) {
@@ -233,13 +208,17 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick, onSettingsC
                 lastMessage: message.text || "",
                 isFile: message.isFile || false,
                 isAgended: false,
+                lastMessageDate: message.creationDate?.toDate ? message.creationDate.toDate() : new Date(message.creationDate || 0)
               };
               
-              // Guardar en IndexedDB
               await saveToIndexedDB("contacts", newContact);
               
-              // Actualizar estado
-              setContacts(prev => [...prev, newContact]);
+              setContacts(prev => {
+                const updatedContacts = [...prev, newContact];
+                // Reordenar contactos por la fecha del último mensaje
+                updatedContacts.sort((a, b) => b.lastMessageDate.getTime() - a.lastMessageDate.getTime());
+                return updatedContacts;
+              });
             }
           } catch (error) {
             console.error("Error al obtener datos del usuario:", error);
@@ -247,7 +226,7 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick, onSettingsC
         }
       });
     });
-
+  
     return () => unsubscribe();
   }, []);
 
@@ -273,7 +252,7 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick, onSettingsC
     // Limpiar la suscripción al desmontar el componente
     return () => unsubscribeContacts();
   }, [auth.currentUser?.uid]);
-
+  
   const handleAddContact = async (contactId: string) => {
     setAddingContacts((prev) => [...prev, contactId]);
     try {
