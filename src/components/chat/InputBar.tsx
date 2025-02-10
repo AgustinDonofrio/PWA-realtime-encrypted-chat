@@ -71,7 +71,8 @@ const InputBar: React.FC<InputBarProps> = ({ onSend }) => {
       <input
         id="image-upload"
         type="file"
-        accept="image/*"
+        accept="image/*,video/*"
+        multiple
         className="hidden"
         onChange={handleImageUpload}
       />
