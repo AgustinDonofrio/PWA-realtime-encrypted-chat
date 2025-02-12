@@ -72,13 +72,7 @@ Este proyecto esta pensado para que el deploy se haga en el host de firebase, pa
 firebase login
 ~~~
 
-2- Con el comando init, se realiza la configuración del servicio firebase a utilizar. En este caso se debe seleccionar el tipo hosting
-
-~~~bash
-firebase init hosting
-~~~
-
-3- Finalmente, con el siguiente comando se realiza el deploy en firebase y los cambios estarán actualizados en produtivo ya que en el archivo _firebase.json_ se deja especificado que el deploy ejecute el comando _npm run build_.
+2- Finalmente, con el siguiente comando se realiza el deploy en firebase y los cambios estarán actualizados en produtivo ya que en el archivo _firebase.json_ se deja especificado que el deploy ejecute el comando _npm run build_.
 
 ~~~bash
 firebase deploy
