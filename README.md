@@ -1,13 +1,31 @@
 # PWA-realtime-encrypted-chat
 
-Este proyecto es un chat encriptado en tiempo real. 
+Este proyecto es un chat encriptado en tiempo real.
 
-### Dependencias
+## Dependencias
 
 Antes que nada, hay que instalar las dependencias para que el proyecto pueda funcionar. Esto se hace ejecutando:
 
 ~~~bash
 npm i
+~~~
+
+## Pasos previos
+
+Para que el proyecto funcione correctamente, se requiere de la existencia de un archivo _.env_ en la raíz de la aplicación. Este archivo debe tener las siguientes propiedades:
+
+~~~bash
+VITE_FIREBASE_API_KEY=xxxxxxxxxxx
+VITE_FIREBASE_AUTH_DOMAIN=xxxxxxxxxxx
+VITE_FIREBASE_PROJECT_ID=xxxxxxxxxxx
+VITE_FIREBASE_STORAGE_BUCKET=xxxxxxxxxxx
+VITE_FIREBASE_MESSAGING_SENDER_ID=xxxxxxxxxxx
+VITE_FIREBASE_APP_ID=xxxxxxxxxxx
+VITE_FIREBASE_MEASUREMENT_ID=xxxxxxxxxxx
+VITE_CLOUDINARY_CLOUD_NAME=xxxxxxxxxxx
+VITE_CLOUDINARY_UPLOAD_IMG_PRESET=xxxxxxxxxxx
+VITE_CLOUDINARY_UPLOAD_VIDEO_PRESET=xxxxxxxxxxx
+VITE_CRYPTO_SECRET_KET=xxxxxxxxxxx
 ~~~
 
 ## Desarrollo
@@ -35,6 +53,8 @@ Este comando se encarga de compilar el proyecto, dando como resultado la creacio
 ~~~bash
 npm run build
 ~~~
+
+* Deploy:
 
 Para levantar el proyecto en entorno productivo se debe ejecutar el siguiente comando:
 
