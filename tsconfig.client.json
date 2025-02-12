@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "es2020",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,  
+    "jsx": "react",
+    "composite": true,
+    "moduleResolution": "node", 
+    "types": ["vite/client",  "vite-plugin-pwa/client"],
+    "lib": ["DOM", "ESNext", "WebWorker"],
+    "outDir": "dist",
+    "allowSyntheticDefaultImports": true,
+    "allowImportingTsExtensions": true,
+    "emitDeclarationOnly": true,
+    "declaration": true,
+  },
+  "include": ["src/**/*", "vite.config.ts", "src/main.tsx", "public"]
+}
+  
+  
+

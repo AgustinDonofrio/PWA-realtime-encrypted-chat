@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "module": "ESNext", 
+    "target": "ESNext", 
+    "moduleResolution": "Node",
+    "outDir": "dist",
+    "allowJs": false,
+    "strict": true, 
+    "useDefineForClassFields": true,
+    "lib": ["DOM", "DOM.Iterable", "ESNext", "WebWorker"],
+    "esModuleInterop": false, 
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true, 
+    "skipLibCheck": true, 
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "jsx": "react-jsx",
+    "baseUrl": ".",  
+  },
+  "ts-node": {
+    "esm": true,
+    "experimentalSpecifierResolution": "node",
+  },  
+  "include": ["src", "src/main.tsx", "src/pages/service-worker.jsrker.js", "public"], 
+  "exclude": ["node_modules", "dist"] ,
+  "references": [{ "path": "./tsconfig.client.json" }]
+}

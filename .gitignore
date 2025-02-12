@@ -1,0 +1,6 @@
+## nodejs
+/node_modules
+/dev-dist
+.env
+package-lock.json
+dist
