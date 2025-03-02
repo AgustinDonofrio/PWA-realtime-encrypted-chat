@@ -16,13 +16,22 @@ interface Contact {
 interface ContactListProps {
   contacts: Contact[];
   addingContacts: string[];
+  unreadCounts: { [contactId: string]: number };
   onAddContact: (id: string) => void; // Función para manejar la acción de añadir contactos
   onSearch: (text: string) => void; // Función para manejar la búsqueda de contactos
   withoutContactAction: () => void;
   onContactClick: (contactId: string) => void;
 }
 
-const ContactList: React.FC<ContactListProps> = ({ contacts, addingContacts, onAddContact, withoutContactAction, onSearch, onContactClick }) => {
+const ContactList: React.FC<ContactListProps> = ({ 
+  contacts, 
+  addingContacts, 
+  unreadCounts = {}, 
+  onAddContact, 
+  withoutContactAction, 
+  onSearch, 
+  onContactClick 
+}) => {
   const [isSearching, setIsSearching] = useState(false);
   const hasContacts = contacts.length > 0;
 
@@ -63,9 +72,10 @@ const ContactList: React.FC<ContactListProps> = ({ contacts, addingContacts, onA
                 lastMessage={contact.lastMessage}
                 isFile={contact.isFile}
                 isAgended={contact.isAgended}
-                onAddContact={onAddContact}
-                onClick={onContactClick}
                 isAdding={addingContacts.includes(contact.id)}
+                unreadCount={unreadCounts[contact.id] || 0}
+                onAddContact={onAddContact}
+                onClick={onContactClick} 
               />
             ))
           ) : (
