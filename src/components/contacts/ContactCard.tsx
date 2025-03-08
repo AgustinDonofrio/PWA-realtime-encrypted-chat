@@ -13,19 +13,32 @@ interface ContactCardProps {
   isFile?: boolean; // Si el último mensaje es un archivo
   isAgended?: boolean; // Indica si el usuario está en la lista de contactos
   isAdding?: boolean; // Indica si se está añadiendo el contacto
+  unreadCount?: number; // Cantidad de mensajes no leídos
   onAddContact?: (id: string) => void; // Función para agregar un contacto no agendado
   onClick?: (id: string) => void;
 }
 
-const ContactCard: React.FC<ContactCardProps> = ({ name, email, status, profilePicture, id, lastMessage, isFile, isAgended, onAddContact, onClick, isAdding }) => {
-
+const ContactCard: React.FC<ContactCardProps> = ({ 
+  name, 
+  email, 
+  status, 
+  profilePicture, 
+  id, 
+  lastMessage, 
+  isFile, 
+  isAgended, 
+  isAdding, 
+  unreadCount = 0, 
+  onAddContact, 
+  onClick 
+}) => {
   return (
     <div
       className="flex items-center gap-4 p-2.5 ml-4 mr-4 mt-2 hover:bg-steel rounded-lg cursor-pointer"
       onClick={() => onClick?.(id)}
     >
       {/* Imagen/ícono del contacto */}
-      <div className="w-12 h-12 min-w-12 min-h-12 rounded-full overflow-hidden bg-gray-500 flex items-center justify-center">
+      <div className="relative w-12 h-12 min-w-12 min-h-12 rounded-full bg-gray-500 flex items-center justify-center">
         {profilePicture ? (
           <img
             src={profilePicture}
@@ -34,6 +47,11 @@ const ContactCard: React.FC<ContactCardProps> = ({ name, email, status, profileP
           />
         ) : (
           <FaUser className="text-white text-2xl bg-gray-500" />
+        )}
+        {unreadCount > 0 && (
+          <div className="absolute top-1 right-1 bg-red-600 text-white rounded-full text-xs pt-0.5 pb-0.5 pl-1.5 pr-1.5 flex items-center justify-center translate-x-1/2 -translate-y-1/2">
+            {unreadCount > 99 ? "+99" : unreadCount}
+          </div>
         )}
       </div>
 
