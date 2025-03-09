@@ -10,6 +10,7 @@ import PublicRoute from "../components/routes/PublicRoute";
 import PrivateRoute from "../components/routes/PrivateRoute";
 import PushNotification from "../components/notification/PushNotification.tsx";
 import { onMessageListener, requestPermission } from "../controllers/pushNotificationController";
+import { auth } from "../firebase/firebase.config.ts";
 
 const App: React.FC = () => {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth > 768);
@@ -17,15 +18,22 @@ const App: React.FC = () => {
 
   useEffect(() => {
 
-    requestPermission();
+    //Se realiza el listener para las notificaciones solo si el usuario está autenticado
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        requestPermission();
 
-    onMessageListener().then((payload: any) => {
-      setDeployNotification(true);
-      setTimeout(() => {
-        setDeployNotification(false);
-      }, 5000);
-      console.log("Notificación en primer plano:", payload);
+        onMessageListener().then((payload: any) => {
+          setDeployNotification(true);
+          setTimeout(() => {
+            setDeployNotification(false);
+          }, 5000);
+          console.log("Notificación en primer plano:", payload);
+        });
+      }
     });
+
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {

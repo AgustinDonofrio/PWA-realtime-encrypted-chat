@@ -1,5 +1,15 @@
 import { db, auth } from "../firebase/firebase.config";
-import { doc, getDoc, setDoc, updateDoc, collection, query, getDocs, where, onSnapshot } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  collection,
+  query,
+  getDocs,
+  where,
+  onSnapshot,
+} from "firebase/firestore";
 import { mapAuthCodeToMessage } from "../helpers/utils";
 import { uploadToCloudinary } from "./cloudinaryController";
 
@@ -169,7 +179,10 @@ export const getLoggedEmail = (): string | null | undefined => {
   }
 };
 
-export const subscribeToContacts = (userId: string, callback: (contacts: { [key: string]: any }) => void) => {
+export const subscribeToContacts = (
+  userId: string,
+  callback: (contacts: { [key: string]: any }) => void
+) => {
   try {
     const userRef = doc(db, "users", userId);
 
@@ -186,5 +199,43 @@ export const subscribeToContacts = (userId: string, callback: (contacts: { [key:
   } catch (error) {
     console.error("Error subscribing to contacts:", error);
     throw error;
+  }
+};
+
+export const updateUserToken = async (token: string) => {
+  try {
+    const userId = auth.currentUser?.uid;
+
+    if (!userId) {
+      throw new Error("User is not authenticated");
+    }
+
+    const userRef = doc(db, "users", userId);
+    await updateDoc(userRef, {
+      token,
+    });
+
+    return true;
+  } catch (error) {
+    console.error("Error updating user token:", error);
+    throw error;
+  }
+};
+
+export const getUserToken = async (userId: string): Promise<string | null> => {
+  try {
+    const userDocRef = doc(db, "users", userId);
+    const userDocSnap = await getDoc(userDocRef);
+
+    if (!userDocSnap.exists()) {
+      console.error("User not found");
+      return null;
+    }
+
+    const userData = userDocSnap.data();
+    return userData.token;
+  } catch (error) {
+    console.error("Error getting user token:", error);
+    return null;
   }
 };

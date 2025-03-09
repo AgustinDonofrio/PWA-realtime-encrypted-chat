@@ -22,6 +22,7 @@ messaging.onBackgroundMessage((payload) => {
 
   self.registration.showNotification(payload.notification.title, {
     body: payload.notification.body,
+    data: { senderId, isFileMessage },
     icon: "/icon-192x192.png",
   });
 });

@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import Header from "../../components/header/Header";
 import MessageBubble from "../../components/chat/MessageBubble";
 import InputBar from "../../components/chat/InputBar";
-import { getUserById } from "../../controllers/userController";
+import { getUserById, getUserToken } from "../../controllers/userController";
 import { subscribeToMessages, sendMessage, updateMessageSendedState, sendMessageWithId } from "../../controllers/messageController";
 import LoadingPage from "../loading/LoadingPage";
 import { formatDate } from "../../helpers/utils";
@@ -11,6 +11,8 @@ import { uploadToCloudinary } from "../../controllers/cloudinaryController";
 import Snackbar from "../../components/snackbar/Snackbar";
 import { saveToIndexedDB, getFromIndexedDB, getFromIndexedDbById } from "../../controllers/indexDbHelpers";
 import { MdOutlineSignalWifiConnectedNoInternet4 } from "react-icons/md"
+import { auth } from "../../firebase/firebase.config";
+import { sendMessageWithToken } from "../../controllers/pushNotificationController";
 
 const DateSeparator: React.FC<{ date: string }> = ({ date }) => (
   <div className="text-gray-400 text-sm text-center my-2">
@@ -151,11 +153,23 @@ const ChatPage: React.FC<ChatPageProps> = ({ userId }) => {
     const handleOnline = async () => {
       if (navigator.onLine && finalUserId) {
         // Verificar y actualizar el estado de los mensajes no enviados
+        let lastMessageSended = "";
+        let isFileMessage = false;
+        let messageSended = false;
         const unsentMessages = messages.filter((msg) => !msg.sended && msg.sended !== undefined);
 
         for (const msg of unsentMessages) {
           if (msg.id) {
-            await sendMessageWithId(msg.id, finalUserId, msg.text, msg.imageUrl, msg.videoUrl)
+            const response = await sendMessageWithId(msg.id, finalUserId, msg.text, msg.imageUrl, msg.videoUrl)
+
+            if (response.success) {
+              messageSended = true;
+              isFileMessage = msg.imageUrl || msg.videoUrl ? true : false;
+
+              if (!isFileMessage) {
+                lastMessageSended = msg.text || "";
+              }
+            }
           }
         }
       }
@@ -210,7 +224,28 @@ const ChatPage: React.FC<ChatPageProps> = ({ userId }) => {
         return;
       }
 
-      await sendMessage(finalUserId, message, fileUrl, isVideoFile);
+      const sendResponse = await sendMessage(finalUserId, message, fileUrl, isVideoFile);
+
+      if (sendResponse.success) {
+        const userToken = await getUserToken(finalUserId);
+        if (userToken) {
+          console.log("Pero llego hasta aca????????");
+
+          const messageNotification = {
+            notification: {
+              title: `New message from ${auth.currentUser?.displayName}` || "New message",
+              body: message,
+            },
+            data: {
+              isFileMessage: fileToUpload,
+              senderId: auth.currentUser?.uid,
+            }
+          };
+
+          await sendMessageWithToken(userToken, messageNotification);
+        }
+
+      }
     }
   };
 
