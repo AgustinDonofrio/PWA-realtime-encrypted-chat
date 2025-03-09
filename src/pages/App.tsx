@@ -8,16 +8,22 @@ import DesktopPage from "./desktop/DesktopPage";
 import UserSettings from "./profile/UserSettings";
 import PublicRoute from "../components/routes/PublicRoute";
 import PrivateRoute from "../components/routes/PrivateRoute";
+import PushNotification from "../components/notification/PushNotification.tsx";
 import { onMessageListener, requestPermission } from "../controllers/pushNotificationController";
 
 const App: React.FC = () => {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth > 768);
+  const [deployNotification, setDeployNotification] = useState(false);
 
   useEffect(() => {
 
     requestPermission();
 
     onMessageListener().then((payload: any) => {
+      setDeployNotification(true);
+      setTimeout(() => {
+        setDeployNotification(false);
+      }, 5000);
       console.log("Notificación en primer plano:", payload);
     });
   }, []);
@@ -35,53 +41,59 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={
-          <PublicRoute>
-            <Login />
-          </PublicRoute>
-        } />
+    <>
+      {deployNotification && (
+        <PushNotification></PushNotification>
+      )}
 
-        <Route path="/register" element={
-          <PublicRoute>
-            <Register />
-          </PublicRoute>
-        } />
-
-        {/* En desktop, siempre se renderiza DesktopPage */}
-        {isDesktop ? (
-          <Route path="*" element={
-            <PrivateRoute>
-              <DesktopPage />
-              <Navigate to="/contacts" replace />
-            </PrivateRoute>
+      <Router>
+        <Routes>
+          <Route path="/" element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
           } />
-        ) : (
-          <>
-            <Route path="/contacts" element={
+
+          <Route path="/register" element={
+            <PublicRoute>
+              <Register />
+            </PublicRoute>
+          } />
+
+          {/* En desktop, siempre se renderiza DesktopPage */}
+          {isDesktop ? (
+            <Route path="*" element={
               <PrivateRoute>
-                <ContactsPage />
+                <DesktopPage />
+                <Navigate to="/contacts" replace />
               </PrivateRoute>
             } />
+          ) : (
+            <>
+              <Route path="/contacts" element={
+                <PrivateRoute>
+                  <ContactsPage />
+                </PrivateRoute>
+              } />
 
-            <Route path="/chat/:userId" element={
-              <PrivateRoute>
-                <ChatPage />
-              </PrivateRoute>
-            } />
+              <Route path="/chat/:userId" element={
+                <PrivateRoute>
+                  <ChatPage />
+                </PrivateRoute>
+              } />
 
-            <Route path="/settings" element={
-              <PrivateRoute>
-                <UserSettings />
-              </PrivateRoute>
-            } />
+              <Route path="/settings" element={
+                <PrivateRoute>
+                  <UserSettings />
+                </PrivateRoute>
+              } />
 
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </>
-        )}
-      </Routes>
-    </Router>
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </>
+          )}
+        </Routes>
+      </Router>
+    </>
   );
 };
 
