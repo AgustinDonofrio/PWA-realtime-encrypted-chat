@@ -106,6 +106,7 @@ export const subscribeToMessages = (
           sended: data.sended == undefined ? true : data.sended,
           from: data.from,
           to: data.to,
+          read: false, // Marcar como no leído por defecto
         };
       });
 
@@ -187,6 +188,7 @@ export const sendMessage = async (
       videoUrl: isVideoFile ? fileUrl || null : null,
       creationDate: Timestamp.now(),
       sended: navigator.onLine,
+      read: false,
     };
 
     // Guardar el mensaje en Firestore
@@ -236,6 +238,7 @@ export const sendMessageWithId = async (
       videoUrl: videoUrl || null,
       creationDate: Timestamp.now(),
       sended: navigator.onLine,
+      read: false,
     };
 
     // Usamos setDoc para establecer el documento con un ID personalizado
@@ -327,4 +330,45 @@ export const updateMessageSendedState = async (docId: string) => {
   } catch (err: any) {
     return { success: false, message: "Message cannot be updated" };
   }
+};
+
+export const subscribeToUnreadMessages = (
+  currentUserId: string,
+  callback: (unreadCounts: { [chatId: string]: number }) => void
+) => {
+  const messagesRef = collection(db, "messages");
+  const q = query(
+    messagesRef,
+    where("to", "==", currentUserId),
+    where("read", "==", false)
+  );
+
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    const counts: { [chatId: string]: number } = {};
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      const chatId = data.from;
+      counts[chatId] = (counts[chatId] || 0) + 1;
+    });
+    callback(counts);
+  });
+
+  return unsubscribe;
+};
+
+export const markMessagesAsRead = async (contactId: string) => {
+  if (!auth.currentUser?.uid) return;
+  
+  const messagesRef = collection(db, "messages");
+  const q = query(
+    messagesRef,
+    where("to", "==", auth.currentUser.uid),
+    where("from", "==", contactId),
+    where("read", "==", false)
+  );
+
+  const snapshot = await getDocs(q);
+  snapshot.forEach(async (docSnap) => {
+    await updateDoc(doc(db, "messages", docSnap.id), { read: true });
+  });
 };

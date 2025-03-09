@@ -5,7 +5,7 @@ import ContactList from "../../components/contacts/ContactList";
 import AddContactModal from "../../components/modal/AddContactModal";
 import { auth } from "../../firebase/firebase.config";
 import { getUserByEmail, getLoggedEmail, getUserById, addContactToUser, subscribeToContacts } from "../../controllers/userController";
-import { getLastMessage, getMessagesByUser, subscribeToLastMessages } from "../../controllers/messageController";
+import { getLastMessage, getMessagesByUser, subscribeToLastMessages, subscribeToUnreadMessages, markMessagesAsRead } from "../../controllers/messageController";
 import Spinner from "../../components/spinner/Spinner";
 import { saveToIndexedDB, getFromIndexedDB } from "../../controllers/indexDbHelpers"
 
@@ -39,9 +39,14 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick, onSettingsC
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
   const [addingContacts, setAddingContacts] = useState<string[]>([]);
+  const [unreadCounts, setUnreadCounts] = useState<{ [chatId: string]: number }>({});
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
 
-  const handleContactClick = (contactId: string) => {
-  if (onContactClick !== undefined) {
+  const handleContactClick = async (contactId: string) => {
+    setActiveChatId(contactId); // Guardar el chat activo
+    await markMessagesAsRead(contactId)  // Marcar mensajes como leídos para ese contacto
+
+    if (onContactClick !== undefined) {
       onContactClick(contactId); // Llamar a la función del padre (Desktop)
     } else {
       navigate(`/chat/${contactId}`); // Navegar a la página de chat (Mobile)
@@ -165,70 +170,52 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick, onSettingsC
     fetchContacts();
   }, []);
 
+  // Suscribirse a los mensajes no leídos
+  useEffect(() => {
+    if (!auth.currentUser?.uid) return;
+
+    const unsubscribeUnread = subscribeToUnreadMessages(auth.currentUser.uid, (unreadCounts) => {
+      setUnreadCounts(unreadCounts);
+    });
+    return () => unsubscribeUnread();
+
+  }, [auth.currentUser?.uid]);
+
   // Suscribirse a los últimos mensajes
   useEffect(() => {
     if (!auth.currentUser?.uid) return;
   
     const unsubscribe = subscribeToLastMessages(auth.currentUser.uid, (newMessages) => {
-      newMessages.forEach(async (message) => {
-        const currentUserId = auth.currentUser?.uid;
-        if (!currentUserId) return;
+       newMessages.forEach(async (message) => {
+          const currentUserId = auth.currentUser?.uid;
+          if (!currentUserId) return;
   
-        const otherUserId = message.from === currentUserId ? message.to : message.from;
+          const otherUserId = message.from === currentUserId ? message.to : message.from;
   
-        const existingContact = contactsRef.current.find(c => c.id === otherUserId);
-  
-        if (existingContact) {
-          // Actualizar último mensaje y fecha
-          setContacts(prev => {
-            const updatedContacts = prev.map(c => 
-              c.id === otherUserId 
-                ? { 
-                  ...c, 
-                  lastMessage: message.text || "", 
-                  isFile: message.isFile || false, 
-                  lastMessageDate: message.creationDate?.toDate ? message.creationDate.toDate() : new Date(message.creationDate || 0) 
-                }
-                : c
-            );
-            // Ordenar por fecha descendente
-            updatedContacts.sort((a, b) => (b.lastMessageDate?.getTime() || 0) - (a.lastMessageDate?.getTime() || 0));
-            return updatedContacts;
-          });          
-        } else {
-          try {
-            const userDoc = await getUserById(otherUserId);
-            if (userDoc) {
-              const newContact = {
-                id: otherUserId,
-                name: userDoc.name || "Unknown",
-                status: userDoc.status || "",
-                profilePicture: userDoc.profilePicture || "",
-                email: userDoc.email || "",
-                lastMessage: message.text || "",
-                isFile: message.isFile || false,
-                isAgended: false,
-                lastMessageDate: message.creationDate?.toDate ? message.creationDate.toDate() : new Date(message.creationDate || 0)
-              };
-              
-              await saveToIndexedDB("contacts", newContact);
-              
-              setContacts(prev => {
-                const updatedContacts = [...prev, newContact];
-                // Reordenar contactos por la fecha del último mensaje
-                updatedContacts.sort((a, b) => b.lastMessageDate.getTime() - a.lastMessageDate.getTime());
-                return updatedContacts;
-              });
-            }
-          } catch (error) {
-            console.error("Error al obtener datos del usuario:", error);
+          if (otherUserId === activeChatId) {
+            await markMessagesAsRead(otherUserId); // Si el chat abierto es del remitente, marcar como leído
           }
-        }
-      });
+  
+          setContacts(prev => {
+             const updatedContacts = prev.map(c => 
+                c.id === otherUserId 
+                   ? { 
+                      ...c, 
+                      lastMessage: message.text || "", 
+                      isFile: message.isFile || false, 
+                      lastMessageDate: message.creationDate?.toDate ? message.creationDate.toDate() : new Date(message.creationDate || 0) 
+                   }
+                   : c
+             );
+             updatedContacts.sort((a, b) => (b.lastMessageDate?.getTime() || 0) - (a.lastMessageDate?.getTime() || 0));
+             return updatedContacts;
+          });
+       });
     });
   
     return () => unsubscribe();
-  }, []);
+  }, [activeChatId]); // Se ejecutará cada vez que cambie el chat activo
+ 
 
   // Suscribirse a cambios en los contactos del usuario actual
   useEffect(() => {
@@ -309,6 +296,7 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick, onSettingsC
             onSearch={(text) => setSearchText(text)}
             onContactClick={handleContactClick}
             addingContacts={addingContacts}
+            unreadCounts={unreadCounts}
           />
           {contacts.length > 0 && (
             <button
