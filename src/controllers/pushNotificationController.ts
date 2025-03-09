@@ -59,7 +59,11 @@ export const sendMessageWithToken = async (
       },
     };
 
-    console.log(message);
+    const accessToken = await getFirebaseAccessToken();
+
+    if (!accessToken) {
+      return false;
+    }
 
     const response = await axios(
       `https://fcm.googleapis.com/v1/projects/${
@@ -69,18 +73,39 @@ export const sendMessageWithToken = async (
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_FIREBASE_ACCESS_TOKEN}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         data: JSON.stringify(message),
       }
     );
 
+    console.log("Respuesta de FCM 1:", response);
+
     const responseData = response.data;
-    console.log("Respuesta de FCM:", responseData);
+    console.log("Respuesta de FCM 2:", responseData);
 
     return responseData;
   } catch (error) {
     console.error("Error enviando mensaje con token:", error);
     return false;
+  }
+};
+
+const getFirebaseAccessToken = async () => {
+  try {
+    const response = await axios(
+      `${import.meta.env.VITE_FIREBASE_TOKEN_GENERATOR}/firebase/access_token`
+    );
+
+    if (response.status === 200) {
+      const data = response.data;
+      return data.data;
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error obteniendo el token de acceso de Firebase", error);
+
+    return null;
   }
 };
