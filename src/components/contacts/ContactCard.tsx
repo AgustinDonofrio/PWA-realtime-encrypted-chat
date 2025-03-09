@@ -1,6 +1,7 @@
 import React from "react";
 import { FaUser, FaPlus, FaBan } from "react-icons/fa";
 import { FaCamera, FaVideo } from "react-icons/fa";
+import UnreadBubble from "./UnreadBubble";
 import Spinner from "../spinner/Spinner";
 
 interface ContactCardProps {
@@ -48,11 +49,7 @@ const ContactCard: React.FC<ContactCardProps> = ({
         ) : (
           <FaUser className="text-white text-2xl bg-gray-500" />
         )}
-        {unreadCount > 0 && (
-          <div className="absolute top-1 right-1 bg-red-600 text-white rounded-full text-xs pt-0.5 pb-0.5 pl-1.5 pr-1.5 flex items-center justify-center translate-x-1/2 -translate-y-1/2">
-            {unreadCount > 99 ? "+99" : unreadCount}
-          </div>
-        )}
+        <UnreadBubble count={unreadCount || 0} />
       </div>
 
       {/* Detalles del contacto */}
