@@ -8,9 +8,19 @@ import DesktopPage from "./desktop/DesktopPage";
 import UserSettings from "./profile/UserSettings";
 import PublicRoute from "../components/routes/PublicRoute";
 import PrivateRoute from "../components/routes/PrivateRoute";
+import { onMessageListener, requestPermission } from "../controllers/pushNotificationController";
 
 const App: React.FC = () => {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth > 768);
+
+  useEffect(() => {
+
+    requestPermission();
+
+    onMessageListener().then((payload: any) => {
+      console.log("Notificación en primer plano:", payload);
+    });
+  }, []);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(min-width: 769px)");
