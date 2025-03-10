@@ -15,7 +15,7 @@ import { auth } from "../firebase/firebase.config.ts";
 const App: React.FC = () => {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth > 768);
   const [deployNotification, setDeployNotification] = useState(false);
-  const [notificationData, setNotificationData] = useState({ title: "", message: "", isFile: false, profilePicture: "" });
+  const [notificationData, setNotificationData] = useState({ title: "", message: "", isFile: false });
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -32,7 +32,6 @@ const App: React.FC = () => {
               title: payload.notification.title,
               message: payload.notification.body,
               isFile: payload.data.isFileMessage == "1",
-              profilePicture: payload.data.profilePicture,
             });
 
             setDeployNotification(true);
