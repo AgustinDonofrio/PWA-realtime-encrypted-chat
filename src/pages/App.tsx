@@ -15,26 +15,36 @@ import { auth } from "../firebase/firebase.config.ts";
 const App: React.FC = () => {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth > 768);
   const [deployNotification, setDeployNotification] = useState(false);
+  const [notificationData, setNotificationData] = useState({ title: "", message: "", isFile: false, icon: "" });
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   useEffect(() => {
-
-    //Se realiza el listener para las notificaciones solo si el usuario está autenticado
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
         requestPermission();
 
-        onMessageListener().then((payload: any) => {
-          setDeployNotification(true);
-          setTimeout(() => {
-            setDeployNotification(false);
-          }, 5000);
-          console.log("Notificación en primer plano:", payload);
+        onMessageListener((payload) => {
+
+          if (selectedId != payload.data.senderId) {
+
+            setNotificationData({
+              title: payload.notification.title,
+              message: payload.notification.body,
+              isFile: payload.data.isFile,
+              icon: payload.data.icon,
+            });
+
+            setDeployNotification(true);
+            setTimeout(() => {
+              setDeployNotification(false);
+            }, 5000);
+          }
         });
       }
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [selectedId]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(min-width: 769px)");
@@ -48,10 +58,16 @@ const App: React.FC = () => {
     return () => mediaQuery.removeEventListener("change", handleResize);
   }, []);
 
+  const handleContactClick = (contactId: string) => {
+    console.log("Contacto seleccionado:", contactId);
+
+    setSelectedId(contactId);
+  }
+
   return (
     <>
       {deployNotification && (
-        <PushNotification></PushNotification>
+        <PushNotification title={notificationData.title} message={notificationData.message}></PushNotification>
       )}
 
       <Router>
@@ -72,7 +88,7 @@ const App: React.FC = () => {
           {isDesktop ? (
             <Route path="*" element={
               <PrivateRoute>
-                <DesktopPage />
+                <DesktopPage callback={handleContactClick} />
                 <Navigate to="/contacts" replace />
               </PrivateRoute>
             } />
@@ -80,13 +96,13 @@ const App: React.FC = () => {
             <>
               <Route path="/contacts" element={
                 <PrivateRoute>
-                  <ContactsPage />
+                  <ContactsPage callback={handleContactClick} />
                 </PrivateRoute>
               } />
 
               <Route path="/chat/:userId" element={
                 <PrivateRoute>
-                  <ChatPage />
+                  <ChatPage callback={handleContactClick} />
                 </PrivateRoute>
               } />
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, use } from "react";
 import { useParams } from "react-router-dom";
 import Header from "../../components/header/Header";
 import MessageBubble from "../../components/chat/MessageBubble";
@@ -22,9 +22,10 @@ const DateSeparator: React.FC<{ date: string }> = ({ date }) => (
 
 interface ChatPageProps {
   userId?: string;
+  callback?: (value: string) => void;
 }
 
-const ChatPage: React.FC<ChatPageProps> = ({ userId }) => {
+const ChatPage: React.FC<ChatPageProps> = ({ userId, callback }) => {
   const { userId: userIdFromParams } = useParams<{ userId: string }>();
   const finalUserId = userId || userIdFromParams; // Usa el de props (para mobile) o el de params (para desktop)
   const [messages, setMessages] = useState<{ id?: string, from?: string, to?: string, text?: string; imageUrl?: string; videoUrl?: string, isSender: boolean, timestamp: Date, sended?: boolean }[]>([]);
@@ -42,6 +43,12 @@ const ChatPage: React.FC<ChatPageProps> = ({ userId }) => {
   const chatEndRef = useRef<HTMLDivElement>(null); // Para scroll automático
   const chatContainerRef = useRef<HTMLDivElement>(null); // Para cargar más mensajes
 
+
+  if (finalUserId && callback) {
+    useEffect(() => {
+      callback(finalUserId);
+    }, [finalUserId]);
+  }
 
   const showSnackbar = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
     setSnackbarMessage(message);
@@ -229,20 +236,23 @@ const ChatPage: React.FC<ChatPageProps> = ({ userId }) => {
       if (sendResponse.success) {
         const userToken = await getUserToken(finalUserId);
         if (userToken) {
-          console.log("Pero llego hasta aca????????");
 
-          const messageNotification = {
-            notification: {
-              title: `New message from ${auth.currentUser?.displayName}` || "New message",
-              body: message,
-            },
-            data: {
-              isFileMessage: fileToUpload,
-              senderId: auth.currentUser?.uid,
+          const userData = await getUserById(auth.currentUser?.uid || "");
+
+          if (userData) {
+            const messageNotification = {
+              notification: {
+                title: `New message from ${userData.name}` || "New message",
+                body: message,
+              },
+              data: {
+                isFileMessage: fileToUpload,
+                senderId: auth.currentUser?.uid,
+              }
             }
-          };
 
-          await sendMessageWithToken(userToken, messageNotification);
+            await sendMessageWithToken(userToken, messageNotification);
+          }
         }
 
       }

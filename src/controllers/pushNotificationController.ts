@@ -38,11 +38,11 @@ export const requestPermission = async () => {
   }
 };
 
-export const onMessageListener = () => {
+export const onMessageListener = (callback: (payload: any) => void) => {
   return new Promise((resolve) => {
     onMessage(messaging, (payload) => {
       console.log("Notificación recibida en foreground:", payload);
-      resolve(payload);
+      callback(payload);
     });
   });
 };
@@ -60,6 +60,7 @@ export const sendMessageWithToken = async (
     };
 
     const accessToken = await getFirebaseAccessToken();
+    console.log(accessToken);
 
     if (!accessToken) {
       return false;
