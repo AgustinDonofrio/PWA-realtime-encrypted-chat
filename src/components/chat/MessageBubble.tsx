@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { formatTime } from "../../helpers/utils";
 import Spinner from "../spinner/Spinner";
 import { FaExclamationCircle } from "react-icons/fa"
-import axios from "axios";
+
 
 interface MessageBubbleProps {
   text?: string;

@@ -15,7 +15,7 @@ import { auth } from "../firebase/firebase.config.ts";
 const App: React.FC = () => {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth > 768);
   const [deployNotification, setDeployNotification] = useState(false);
-  const [notificationData, setNotificationData] = useState({ title: "", message: "", isFile: false, icon: "" });
+  const [notificationData, setNotificationData] = useState({ title: "", message: "", isFile: false, profilePicture: "" });
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -24,6 +24,7 @@ const App: React.FC = () => {
         requestPermission();
 
         onMessageListener((payload) => {
+          console.log(payload);
 
           // La notificación solo se despliega si el usuario no está en la conversación
           if (selectedId != payload.data.senderId) {
@@ -31,7 +32,7 @@ const App: React.FC = () => {
               title: payload.notification.title,
               message: payload.notification.body,
               isFile: payload.data.isFileMessage == "1",
-              icon: payload.data.icon,
+              profilePicture: payload.data.profilePicture,
             });
 
             setDeployNotification(true);

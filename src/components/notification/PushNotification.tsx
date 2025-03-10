@@ -1,22 +1,36 @@
 
 import React from 'react';
-import { FaCamera } from 'react-icons/fa';
+import { FaCamera, FaUser } from 'react-icons/fa';
 
 interface PushNotificationProps {
     title: string;
     message: string;
     isFile?: boolean;
-    icon?: string;
+    profilePicture?: string;
 }
 
-const PushNotification: React.FC<PushNotificationProps> = ({ title, message, isFile, icon }) => {
+const PushNotification: React.FC<PushNotificationProps> = ({ title, message, isFile, profilePicture }) => {
 
-    return (<div className="absolute m-auto z-50 left-0 right-0 top-3 text-center w-11/12 bg-white p-2 rounded-lg">
-        <div className='justify-items-center'>
-            {icon ? <img src={icon}
-                className="w-12 h-12 rounded-full m-auto" alt="icon" /> : null}
-            <h2>{title}</h2>
-            <p>{isFile ? <FaCamera></FaCamera> : message}</p>
+    return (<div className="absolute m-auto z-50 left-0 right-0 top-3 h-[72px] text-center max-w-[90%] w-max bg-royal-blue p-3 rounded-lg">
+
+        <div className='flex w-full max-h-full justify-center gap-3'>
+            <div className="relative w-12 h-12 min-w-12 min-h-12 rounded-full bg-gray-500 flex items-center justify-center">
+                {profilePicture ? (
+                    <img
+                        src={profilePicture}
+                        alt={""}
+                        className="w-12 h-12 rounded-full"
+                    />
+                ) : (
+                    <FaUser className="text-white text-2xl bg-gray-500" />
+                )}
+            </div>
+
+            <div className='justify-items-center line-clamp-3 max-h-full'>
+                <h1 className="truncate text-lg font-semibold max-w-full">{title}</h1>
+                <p className="truncate max-w-full">{isFile ? <FaCamera></FaCamera> : message}</p>
+            </div>
+
         </div>
 
     </div>)
