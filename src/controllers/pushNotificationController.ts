@@ -60,7 +60,6 @@ export const sendMessageWithToken = async (
     };
 
     const accessToken = await getFirebaseAccessToken();
-    console.log(accessToken);
 
     if (!accessToken) {
       return false;

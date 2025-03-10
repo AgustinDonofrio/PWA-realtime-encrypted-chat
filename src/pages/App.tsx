@@ -25,12 +25,12 @@ const App: React.FC = () => {
 
         onMessageListener((payload) => {
 
+          // La notificación solo se despliega si el usuario no está en la conversación
           if (selectedId != payload.data.senderId) {
-
             setNotificationData({
               title: payload.notification.title,
               message: payload.notification.body,
-              isFile: payload.data.isFile,
+              isFile: payload.data.isFileMessage == "1",
               icon: payload.data.icon,
             });
 
@@ -67,7 +67,7 @@ const App: React.FC = () => {
   return (
     <>
       {deployNotification && (
-        <PushNotification title={notificationData.title} message={notificationData.message}></PushNotification>
+        <PushNotification title={notificationData.title} message={notificationData.message} isFile={notificationData.isFile}></PushNotification>
       )}
 
       <Router>

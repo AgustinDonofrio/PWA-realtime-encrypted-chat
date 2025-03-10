@@ -246,7 +246,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ userId, callback }) => {
                 body: message,
               },
               data: {
-                isFileMessage: fileToUpload,
+                isFileMessage: fileToUpload ? "1" : "0",
                 senderId: auth.currentUser?.uid,
               }
             }
