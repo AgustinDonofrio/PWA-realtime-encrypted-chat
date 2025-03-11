@@ -186,33 +186,63 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick, onSettingsC
     if (!auth.currentUser?.uid) return;
   
     const unsubscribe = subscribeToLastMessages(auth.currentUser.uid, (newMessages) => {
-       newMessages.forEach(async (message) => {
-          const currentUserId = auth.currentUser?.uid;
-          if (!currentUserId) return;
-  
-          const otherUserId = message.from === currentUserId ? message.to : message.from;
-  
+      newMessages.forEach(async (message) => {
+        const currentUserId = auth.currentUser?.uid;
+        if (!currentUserId) return;
+        
+        const otherUserId = message.from === currentUserId ? message.to : message.from;
+
+        const existingContact = contactsRef.current.find(c => c.id === otherUserId);
+
+        if (!existingContact) {
+          // Si no existe, recargar contactos
+          await fetchContacts(false);
+        } else {
+          // Lógica existente para actualizar último mensaje
           if (otherUserId === activeChatId) {
-            await markMessagesAsRead(otherUserId); // Si el chat abierto es del remitente, marcar como leído
+            await markMessagesAsRead(otherUserId);
           }
-  
+          
           setContacts(prev => {
-             const updatedContacts = prev.map(c => 
-                c.id === otherUserId 
-                   ? { 
-                      ...c, 
-                      lastMessage: message.text || "", 
-                      isFile: message.isFile || false, 
-                      lastMessageDate: message.creationDate?.toDate ? message.creationDate.toDate() : new Date(message.creationDate || 0) 
-                   }
-                   : c
-             );
-             updatedContacts.sort((a, b) => (b.lastMessageDate?.getTime() || 0) - (a.lastMessageDate?.getTime() || 0));
-             return updatedContacts;
+            const updatedContacts = prev.map(c => 
+              c.id === otherUserId 
+              ? { 
+                ...c, 
+                lastMessage: message.text || "",
+                isFile: message.isFile || false,
+                lastMessageDate: message.creationDate?.toDate ? message.creationDate.toDate() : new Date(message.creationDate || 0)
+              }
+              : c
+            );
+            updatedContacts.sort((a, b) => (b.lastMessageDate?.getTime() || 0) - (a.lastMessageDate?.getTime() || 0));
+            return updatedContacts;
           });
-       });
+        }
+      });
     });
-  
+        
+    //     if (otherUserId === activeChatId) {
+    //       await markMessagesAsRead(otherUserId); // Si el chat abierto es del remitente, marcar como leído
+    //     }
+        
+    //     setContacts(prev => {
+    //       const updatedContacts = prev.map(c => 
+    //         c.id === otherUserId 
+    //         ? { 
+    //           ...c, 
+    //           lastMessage: message.text || "",
+    //           isFile: message.isFile || false,
+    //           lastMessageDate: message.creationDate?.toDate ? message.creationDate.toDate() : new Date(message.creationDate || 0)
+    //         }
+    //         : c
+    //       );
+    //       updatedContacts.sort((a, b) => (b.lastMessageDate?.getTime() || 0) - (a.lastMessageDate?.getTime() || 0));
+          
+    //       return updatedContacts;
+    //     });
+    //   });
+    // });
+    
     return () => unsubscribe();
   }, [activeChatId]); // Se ejecutará cada vez que cambie el chat activo
  
