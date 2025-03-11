@@ -11,11 +11,13 @@ import PrivateRoute from "../components/routes/PrivateRoute";
 import PushNotification from "../components/notification/PushNotification.tsx";
 import { onMessageListener, requestPermission } from "../controllers/pushNotificationController";
 import { auth } from "../firebase/firebase.config.ts";
+import { title } from "process";
 
 const App: React.FC = () => {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth > 768);
+  const [notifications, setNotifications] = useState<{ [key: string]: number }>({});
   const [deployNotification, setDeployNotification] = useState(false);
-  const [notificationData, setNotificationData] = useState({ title: "", message: "", isFile: false });
+  const [notificationMessage, setNotificationMessage] = useState({ title: "", message: "" });
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -23,20 +25,33 @@ const App: React.FC = () => {
       if (user) {
         requestPermission();
 
-        onMessageListener((payload) => {
+        onMessageListener((payload: { data: { senderId: string }, notification: { title: string, body: string } }) => {
           console.log(payload);
+          const senderId = payload.data.senderId;
 
-          // La notificación solo se despliega si el usuario no está en la conversación
-          if (selectedId != payload.data.senderId) {
-            setNotificationData({
-              title: payload.notification.title,
-              message: payload.notification.body,
-              isFile: payload.data.isFileMessage == "1",
+          if (selectedId !== senderId) {
+            setNotifications((prev) => {
+              const updatedNotifications = { ...prev, [senderId]: (prev[senderId] || 0) + 1 };
+
+              // Actualizamos el mensaje según la cantidad de notificaciones
+              const totalMessages = Object.values(updatedNotifications).reduce((a, b) => a + b, 0);
+
+              if (Object.keys(updatedNotifications).length === 1) {
+                const userMessages = updatedNotifications[senderId];
+
+                setNotificationMessage({ title: payload.notification.title, message: payload.notification.body });
+
+              } else {
+                setNotificationMessage({ title: "BlueCrypt notification", message: `You have ${totalMessages} new messages` });
+              }
+
+              return updatedNotifications;
             });
 
             setDeployNotification(true);
             setTimeout(() => {
               setDeployNotification(false);
+              setNotifications({}); // Limpiar notificaciones después de mostrarlas
             }, 5000);
           }
         });
@@ -45,6 +60,8 @@ const App: React.FC = () => {
 
     return () => unsubscribe();
   }, [selectedId]);
+
+
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(min-width: 769px)");
@@ -67,7 +84,7 @@ const App: React.FC = () => {
   return (
     <>
       {deployNotification && (
-        <PushNotification title={notificationData.title} message={notificationData.message} isFile={notificationData.isFile}></PushNotification>
+        <PushNotification title={notificationMessage.title} message={notificationMessage.message} />
       )}
 
       <Router>

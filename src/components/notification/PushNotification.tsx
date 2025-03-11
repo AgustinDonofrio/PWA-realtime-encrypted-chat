@@ -6,7 +6,6 @@ interface PushNotificationProps {
     title: string;
     message: string;
     isFile?: boolean;
-    profilePicture?: string;
 }
 
 const PushNotification: React.FC<PushNotificationProps> = ({ title, message, isFile }) => {
