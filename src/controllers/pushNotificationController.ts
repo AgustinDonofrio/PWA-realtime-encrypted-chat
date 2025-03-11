@@ -59,32 +59,19 @@ export const sendMessageWithToken = async (
       },
     };
 
-    const accessToken = await getFirebaseAccessToken();
-
-    if (!accessToken) {
-      return false;
-    }
-
     const response = await axios(
-      `https://fcm.googleapis.com/v1/projects/${
-        import.meta.env.VITE_FIREBASE_PROJECT_ID
-      }/messages:send`,
+      `${import.meta.env.VITE_FIREBASE_TOKEN_GENERATOR}/firebase/send_message`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        data: JSON.stringify(message),
+        data: message,
       }
     );
 
-    console.log("Respuesta de FCM 1:", response);
+    if (response.status >= 300) {
+      return false;
+    }
 
-    const responseData = response.data;
-    console.log("Respuesta de FCM 2:", responseData);
-
-    return responseData;
+    return true;
   } catch (error) {
     console.error("Error enviando mensaje con token:", error);
     return false;
