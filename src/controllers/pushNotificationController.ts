@@ -77,22 +77,3 @@ export const sendMessageWithToken = async (
     return false;
   }
 };
-
-const getFirebaseAccessToken = async () => {
-  try {
-    const response = await axios(
-      `${import.meta.env.VITE_FIREBASE_TOKEN_GENERATOR}/firebase/access_token`
-    );
-
-    if (response.status === 200) {
-      const data = response.data;
-      return data.data;
-    }
-
-    return null;
-  } catch (error) {
-    console.error("Error obteniendo el token de acceso de Firebase", error);
-
-    return null;
-  }
-};
