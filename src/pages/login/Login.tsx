@@ -141,7 +141,8 @@ const Login: React.FC = () => {
           email: googleResponse.google.user.email,
           contacts: {},
           profilePicture: googleResponse.google.user.photoURL,
-          status: "-"
+          status: "-",
+          allowNotifications: true
         }
 
         const userResponse = await createUser(auth.currentUser?.uid, userToCreate);

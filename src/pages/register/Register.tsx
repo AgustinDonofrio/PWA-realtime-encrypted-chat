@@ -149,7 +149,8 @@ const Register: React.FC = () => {
                     email: userData.email.value,
                     contacts: {},
                     status: "-",
-                    profilePicture: ""
+                    profilePicture: "",
+                    allowNotifications: true
                 }
 
                 if (!auth.currentUser?.uid) {
