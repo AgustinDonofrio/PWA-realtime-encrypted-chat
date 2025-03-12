@@ -5,6 +5,7 @@ import LoadingPage from "../loading/LoadingPage";
 import { getAuth, User } from "firebase/auth";
 import { getUserById, updateProfilePicture } from "../../controllers/userController";
 import Snackbar from "../../components/snackbar/Snackbar";
+import Switch from "../../components/switch/Switch";
 
 interface UserSettingsProps {
   onMessageClick?: () => void;
@@ -233,6 +234,13 @@ const UserSettings: React.FC<UserSettingsProps> = ({ onMessageClick }) => {
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Permitir notificaciones */}
+          <div className="mt-8">
+            <div className="flex flex-wrap flex-row justify-between"><h3 className="text-gray-400 text-m mb-2">Allow notifications</h3> <div><Switch isEnabled={false} onToggle={() => {
+
+            }}></Switch></div></div>
           </div>
         </div>
       </div>
