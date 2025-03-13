@@ -5,7 +5,8 @@ import Spinner from "../../components/spinner/Spinner";
 import * as Utils from "../../helpers/utils"
 import { useNavigate, } from "react-router-dom";
 import { createAccount } from "../../controllers/authController"
-import { createUser } from "../../controllers/userController"
+import { createUser, updateUserNotificationPermission } from "../../controllers/userController"
+import { requestPermission } from "../../controllers/pushNotificationController"
 import { auth } from "../../firebase/firebase.config"
 import { CiLock } from "react-icons/ci";
 
@@ -149,7 +150,8 @@ const Register: React.FC = () => {
                     email: userData.email.value,
                     contacts: {},
                     status: "-",
-                    profilePicture: ""
+                    profilePicture: "",
+                    allowNotifications: true
                 }
 
                 if (!auth.currentUser?.uid) {
@@ -165,6 +167,12 @@ const Register: React.FC = () => {
                     showSnackbar(registerResponse.msg, "error");
                     setLoadingSubmit(false);
                     return createUserResponse.success;
+                }
+
+                const response = requestPermission();
+
+                if (!response) {
+                    updateUserNotificationPermission(false);
                 }
 
                 console.log("[x] Account created successfully :)")

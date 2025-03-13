@@ -1,7 +1,7 @@
 import React from "react";
-import { FaUser, FaPlus, FaBan } from "react-icons/fa";
-import { FaCamera, FaVideo } from "react-icons/fa";
-import UnreadBubble from "./UnreadBubble";
+import { FaUser, FaPlus } from "react-icons/fa";
+import { FaCamera } from "react-icons/fa";
+import UnreadBubble from "../unread_bubble/UnreadBubble";
 import Spinner from "../spinner/Spinner";
 
 interface ContactCardProps {
@@ -19,19 +19,19 @@ interface ContactCardProps {
   onClick?: (id: string) => void;
 }
 
-const ContactCard: React.FC<ContactCardProps> = ({ 
-  name, 
-  email, 
-  status, 
-  profilePicture, 
-  id, 
-  lastMessage, 
-  isFile, 
-  isAgended, 
-  isAdding, 
-  unreadCount = 0, 
-  onAddContact, 
-  onClick 
+const ContactCard: React.FC<ContactCardProps> = ({
+  name,
+  email,
+  status,
+  profilePicture,
+  id,
+  lastMessage,
+  isFile,
+  isAgended,
+  isAdding,
+  unreadCount = 0,
+  onAddContact,
+  onClick
 }) => {
   return (
     <div

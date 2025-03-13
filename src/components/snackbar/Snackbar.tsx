@@ -46,7 +46,7 @@ const Snackbar: React.FC<SnackbarProps> = ({ message, duration = 3000, onClose, 
     return (
         <div
             className={
-                `fixed bottom-4 left-1/2 transform -translate-x-1/2 w-full max-w-xs p-4 text-white rounded-lg shadow-md transition-all duration-300 ${isVisible ? "opacity-100" : "opacity-0 translate-y-4"} ${bgColor}`
+                `fixed z-50 bottom-4 left-1/2 transform -translate-x-1/2 w-full max-w-xs p-4 text-white rounded-lg shadow-md transition-all duration-300 ${isVisible ? "opacity-100" : "opacity-0 translate-y-4"} ${bgColor}`
             }
             style={{ transition: "opacity 0.3s ease, transform 0.3s ease" }}
         >

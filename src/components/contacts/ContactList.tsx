@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import ContactCard from "./ContactCard";
-import SearchBar from "./SearchBar";
+import SearchBar from "../search_bar/SearchBar";
 
 interface Contact {
   name: string | "";
@@ -23,14 +23,14 @@ interface ContactListProps {
   onContactClick: (contactId: string) => void;
 }
 
-const ContactList: React.FC<ContactListProps> = ({ 
-  contacts, 
-  addingContacts, 
-  unreadCounts = {}, 
-  onAddContact, 
-  withoutContactAction, 
-  onSearch, 
-  onContactClick 
+const ContactList: React.FC<ContactListProps> = ({
+  contacts,
+  addingContacts,
+  unreadCounts = {},
+  onAddContact,
+  withoutContactAction,
+  onSearch,
+  onContactClick
 }) => {
   const [isSearching, setIsSearching] = useState(false);
   const hasContacts = contacts.length > 0;
@@ -75,7 +75,7 @@ const ContactList: React.FC<ContactListProps> = ({
                 isAdding={addingContacts.includes(contact.id)}
                 unreadCount={unreadCounts[contact.id] || 0}
                 onAddContact={onAddContact}
-                onClick={onContactClick} 
+                onClick={onContactClick}
               />
             ))
           ) : (
