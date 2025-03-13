@@ -20,6 +20,7 @@ interface User {
   profilePicture: string | "";
   status: string | "";
   uid?: string;
+  allowNotifications?: boolean;
 }
 
 interface UserResponse {
@@ -237,5 +238,29 @@ export const getUserToken = async (userId: string): Promise<string | null> => {
   } catch (error) {
     console.error("Error getting user token:", error);
     return null;
+  }
+};
+
+export const updateUserNotificationPermission = async (
+  allowNotification: boolean
+) => {
+  try {
+    const userId = auth.currentUser?.uid;
+
+    if (!userId) {
+      console.error("User is not authenticated");
+      return false;
+    }
+
+    const userRef = doc(db, "users", userId);
+    await updateDoc(userRef, {
+      allowNotifications: allowNotification,
+    });
+
+    return true;
+  } catch (error: any) {
+    console.log("Error updating user notification permission:", error.message);
+
+    return false;
   }
 };

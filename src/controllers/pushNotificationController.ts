@@ -1,4 +1,4 @@
-import { getToken, onMessage } from "firebase/messaging";
+import { getToken, onMessage, deleteToken } from "firebase/messaging";
 import { messaging } from "../firebase/firebase.config";
 import { updateUserToken } from "./userController";
 import axios from "axios";
@@ -74,6 +74,24 @@ export const sendMessageWithToken = async (
     return true;
   } catch (error) {
     console.error("Error enviando mensaje con token:", error);
+    return false;
+  }
+};
+
+export const deleteUserToken = async () => {
+  try {
+    await deleteToken(messaging);
+    const updateResponse = updateUserToken(""); // Actualizar el token del usuario a una cadena vacía
+
+    if (!updateResponse) {
+      return false;
+    }
+
+    localStorage.removeItem("fcmToken");
+
+    return true;
+  } catch (error) {
+    console.error("Error deleting user token:", error);
     return false;
   }
 };

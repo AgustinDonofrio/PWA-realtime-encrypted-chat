@@ -3,9 +3,10 @@ import { FiCamera, FiEdit2, FiCheck } from "react-icons/fi";
 import Header from "../../components/header/Header";
 import LoadingPage from "../loading/LoadingPage";
 import { getAuth, User } from "firebase/auth";
-import { getUserById, updateProfilePicture } from "../../controllers/userController";
+import { getUserById, updateProfilePicture, updateUserNotificationPermission, updateUserToken } from "../../controllers/userController";
 import Snackbar from "../../components/snackbar/Snackbar";
 import Switch from "../../components/switch/Switch";
+import { requestPermission, deleteUserToken } from "../../controllers/pushNotificationController";
 
 interface UserSettingsProps {
   onMessageClick?: () => void;
@@ -16,10 +17,11 @@ const UserSettings: React.FC<UserSettingsProps> = ({ onMessageClick }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [profileData, setProfileData] = useState<{ name: string; status: string; profilePicture: string }>({
+  const [profileData, setProfileData] = useState<{ name: string; status: string; profilePicture: string; allowNotification: boolean }>({
     name: "",
     status: "Hi 👋, I'm using BlueCrypt!",
     profilePicture: "",
+    allowNotification: false
   });
   const [isEditingName, setIsEditingName] = useState(false);
   const [isEditingStatus, setIsEditingStatus] = useState(false);
@@ -50,11 +52,13 @@ const UserSettings: React.FC<UserSettingsProps> = ({ onMessageClick }) => {
       const fetchUserProfile = async () => {
         try {
           const userData: any = await getUserById(currentUser.uid);
+
           if (userData) {
             setProfileData({
               name: userData.name || "Unknown User",
               status: userData.status || "Hi 👋, I'm using BlueCrypt!",
               profilePicture: userData.profilePicture || "",
+              allowNotification: userData.allowNotifications || false, //Por defecto el valor es false, al ser un campo nuevo hay usuarios viejos que no tienen esta propiedad
             });
           }
         } catch (error) {
@@ -238,8 +242,22 @@ const UserSettings: React.FC<UserSettingsProps> = ({ onMessageClick }) => {
 
           {/* Permitir notificaciones */}
           <div className="mt-8">
-            <div className="flex flex-wrap flex-row justify-between"><h3 className="text-gray-400 text-m mb-2">Allow notifications</h3> <div><Switch isEnabled={false} onToggle={() => {
+            <div className="flex flex-wrap flex-row justify-between"><h3 className="text-gray-400 text-m mb-2">Allow notifications</h3> <div><Switch isEnabled={profileData.allowNotification} onToggle={async (value) => {
+              setProfileData({ ...profileData, allowNotification: value });
+              const response = await updateUserNotificationPermission(value);
 
+              if (!response) {
+                setProfileData({ ...profileData, allowNotification: !value });
+                return showSnackbar("Failed to update notification permission.", "error");
+              }
+
+              if (!value) {
+                await deleteUserToken() // Eliminar el token de notificación si se desactivan las notificaciones
+              } else {
+                await requestPermission();
+              }
+
+              showSnackbar("Notification permission updated successfully!", "success");
             }}></Switch></div></div>
           </div>
         </div>

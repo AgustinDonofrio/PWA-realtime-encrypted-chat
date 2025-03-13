@@ -11,7 +11,6 @@ import PrivateRoute from "../components/routes/PrivateRoute";
 import PushNotification from "../components/notification/PushNotification.tsx";
 import { onMessageListener, requestPermission } from "../controllers/pushNotificationController";
 import { auth } from "../firebase/firebase.config.ts";
-import { title } from "process";
 
 const App: React.FC = () => {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth > 768);
@@ -23,10 +22,8 @@ const App: React.FC = () => {
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
-        requestPermission();
 
         onMessageListener((payload: { data: { senderId: string }, notification: { title: string, body: string } }) => {
-          console.log(payload);
           const senderId = payload.data.senderId;
 
           if (selectedId !== senderId) {
