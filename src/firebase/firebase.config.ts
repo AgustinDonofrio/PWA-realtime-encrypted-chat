@@ -1,7 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-import dotenv from "dotenv";
+import { getMessaging } from "firebase/messaging";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -18,5 +18,6 @@ const firebaseApp = initializeApp(firebaseConfig);
 // Exporta Firestore y Auth para usarlos en el proyecto
 export const db = getFirestore(firebaseApp);
 export const auth = getAuth(firebaseApp);
+export const messaging = getMessaging(firebaseApp);
 
 export { firebaseApp };

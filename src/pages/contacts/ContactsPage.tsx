@@ -12,28 +12,31 @@ import { saveToIndexedDB, getFromIndexedDB } from "../../controllers/indexDbHelp
 interface ContactsPageProps {
   onContactClick?: (contactId: string) => void;
   onSettingsClick?: () => void;
+  callback?: (value: string) => void;
 }
 
-const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick, onSettingsClick }) => {
+const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick, onSettingsClick, callback }) => {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [contacts, setContacts] = useState<
-    { name: string; 
-      email: string; 
-      status: string; 
-      profilePicture: string; 
-      id: string; 
-      lastMessage: string; 
-      isFile: boolean; 
+    {
+      name: string;
+      email: string;
+      status: string;
+      profilePicture: string;
+      id: string;
+      lastMessage: string;
+      isFile: boolean;
       isAgended?: boolean;
       lastMessageDate?: Date;
-     }[]>([]);
+    }[]>([]);
   const [filteredContacts, setFilteredContacts] = useState<
-    { name: string; 
-      email: string; 
-      status: string; 
-      profilePicture: string; 
-      id: string;  
+    {
+      name: string;
+      email: string;
+      status: string;
+      profilePicture: string;
+      id: string;
       lastMessageDate?: Date;
     }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,6 +44,13 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick, onSettingsC
   const [addingContacts, setAddingContacts] = useState<string[]>([]);
   const [unreadCounts, setUnreadCounts] = useState<{ [chatId: string]: number }>({});
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
+
+  if (callback) {
+    useEffect(() => {
+      callback("");
+    }
+      , []);
+  }
 
   const handleContactClick = async (contactId: string) => {
     setActiveChatId(contactId); // Guardar el chat activo
@@ -105,9 +115,9 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick, onSettingsC
       const messageUserIds = new Set<string>();
       messages.forEach((message) => {
         if (message.from !== auth.currentUser?.uid) messageUserIds.add(message.from);
-        
+
         if (message.to !== auth.currentUser?.uid) messageUserIds.add(message.to);
-  
+
       });
 
       // Combinar IDs de contactos agendados y de mensajes
@@ -162,7 +172,7 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick, onSettingsC
       console.error("Error obteniendo contactos:", error);
     } finally {
       if (showLoading) setLoading(false);
-      
+
     }
   };
 
@@ -184,12 +194,12 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick, onSettingsC
   // Suscribirse a los últimos mensajes
   useEffect(() => {
     if (!auth.currentUser?.uid) return;
-  
+
     const unsubscribe = subscribeToLastMessages(auth.currentUser.uid, (newMessages) => {
       newMessages.forEach(async (message) => {
         const currentUserId = auth.currentUser?.uid;
         if (!currentUserId) return;
-        
+
         const otherUserId = message.from === currentUserId ? message.to : message.from;
 
         const existingContact = contactsRef.current.find(c => c.id === otherUserId);
@@ -202,17 +212,17 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick, onSettingsC
           if (otherUserId === activeChatId) {
             await markMessagesAsRead(otherUserId);
           }
-          
+
           setContacts(prev => {
-            const updatedContacts = prev.map(c => 
-              c.id === otherUserId 
-              ? { 
-                ...c, 
-                lastMessage: message.text || "",
-                isFile: message.isFile || false,
-                lastMessageDate: message.creationDate?.toDate ? message.creationDate.toDate() : new Date(message.creationDate || 0)
-              }
-              : c
+            const updatedContacts = prev.map(c =>
+              c.id === otherUserId
+                ? {
+                  ...c,
+                  lastMessage: message.text || "",
+                  isFile: message.isFile || false,
+                  lastMessageDate: message.creationDate?.toDate ? message.creationDate.toDate() : new Date(message.creationDate || 0)
+                }
+                : c
             );
             updatedContacts.sort((a, b) => (b.lastMessageDate?.getTime() || 0) - (a.lastMessageDate?.getTime() || 0));
             return updatedContacts;
@@ -220,11 +230,11 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick, onSettingsC
         }
       });
     });
-        
+
     //     if (otherUserId === activeChatId) {
     //       await markMessagesAsRead(otherUserId); // Si el chat abierto es del remitente, marcar como leído
     //     }
-        
+
     //     setContacts(prev => {
     //       const updatedContacts = prev.map(c => 
     //         c.id === otherUserId 
@@ -237,20 +247,20 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick, onSettingsC
     //         : c
     //       );
     //       updatedContacts.sort((a, b) => (b.lastMessageDate?.getTime() || 0) - (a.lastMessageDate?.getTime() || 0));
-          
+
     //       return updatedContacts;
     //     });
     //   });
     // });
-    
+
     return () => unsubscribe();
   }, [activeChatId]); // Se ejecutará cada vez que cambie el chat activo
- 
+
 
   // Suscribirse a cambios en los contactos del usuario actual
   useEffect(() => {
     if (!auth.currentUser?.uid) return;
-  
+
     // Suscribirse a cambios en los contactos del usuario actual
     const unsubscribeContacts = subscribeToContacts(auth.currentUser.uid, (contacts) => {
       // Actualizar la lista de contactos en el estado
@@ -265,11 +275,11 @@ const ContactsPage: React.FC<ContactsPageProps> = ({ onContactClick, onSettingsC
         return updatedContacts;
       });
     });
-  
+
     // Limpiar la suscripción al desmontar el componente
     return () => unsubscribeContacts();
   }, [auth.currentUser?.uid]);
-  
+
   const handleAddContact = async (contactId: string) => {
     setAddingContacts((prev) => [...prev, contactId]);
     try {

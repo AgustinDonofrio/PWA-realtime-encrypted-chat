@@ -4,7 +4,11 @@ import ContactsPage from "../contacts/ContactsPage";
 import ChatPage from "../chat/ChatPage";
 import UserSettings from "../profile/UserSettings";
 
-const DesktopPage: React.FC = () => {
+interface DesktopPageProps {
+  callback: (value: string) => void;
+}
+
+const DesktopPage: React.FC<DesktopPageProps> = ({ callback }) => {
   const [selectedContact, setSelectedContact] = useState<string | null>(null);
   const [showSettings, setShowSettings] = useState(false); // Estado para alternar entre contactos y configuraciones
 
@@ -30,7 +34,7 @@ const DesktopPage: React.FC = () => {
       {/* Ventana de chat */}
       <div className="w-full bg-main-color flex flex-col items-center justify-center relative">
         {selectedContact ? (
-          <ChatPage userId={selectedContact} />
+          <ChatPage userId={selectedContact} callback={callback} />
         ) : (
           <div className="flex flex-col items-center text-center">
             <h1 className="text-3xl text-gray-300 font-semibold">
@@ -40,7 +44,7 @@ const DesktopPage: React.FC = () => {
               Start a new chat or add contacts to begin messaging.
             </p>
             <div className="absolute bottom-5 flex items-center text-sm text-gray-500">
-              <CiLock className="text-gray-500 mr-1" /> 
+              <CiLock className="text-gray-500 mr-1" />
               <span className="justify-center text-sm"> Your personal messages are end-to-end encrypted.</span>
             </div>
           </div>

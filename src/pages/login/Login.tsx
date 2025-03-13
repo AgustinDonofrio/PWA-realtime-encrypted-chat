@@ -4,7 +4,8 @@ import Snackbar from "../../components/snackbar/Snackbar";
 import { useNavigate } from "react-router-dom";
 import * as Utils from "../../helpers/utils";
 import { loginAccount, loginWithGoogle, logout } from "../../controllers/authController";
-import { getUserByEmail, createUser } from "../../controllers/userController";
+import { getUserByEmail, createUser, updateUserNotificationPermission } from "../../controllers/userController";
+import { requestPermission } from "../../controllers/pushNotificationController";
 import Spinner from "../../components/spinner/Spinner";
 import { auth } from "../../firebase/firebase.config";
 import { CiLock } from "react-icons/ci";
@@ -141,7 +142,8 @@ const Login: React.FC = () => {
           email: googleResponse.google.user.email,
           contacts: {},
           profilePicture: googleResponse.google.user.photoURL,
-          status: "-"
+          status: "-",
+          allowNotifications: true
         }
 
         const userResponse = await createUser(auth.currentUser?.uid, userToCreate);
@@ -152,6 +154,12 @@ const Login: React.FC = () => {
           setLoadingSubmit(false);
           await logout();
           return userResponse.success;
+        }
+
+        const response = requestPermission();
+
+        if (!response) {
+          updateUserNotificationPermission(false);
         }
       }
 

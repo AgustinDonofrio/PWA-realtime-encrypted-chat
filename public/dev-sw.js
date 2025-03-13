@@ -2,7 +2,7 @@ const CACHE_NAME = "pwa-cache";
 
 // Evento: Instalación
 self.addEventListener("install", (event) => {
-  console.log("[Service Worker Dev] Instalado");
+  console.log("[Service Worker] Instalado");
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache
@@ -41,7 +41,7 @@ self.addEventListener("activate", (event) => {
 
 // Evento: Fetch
 self.addEventListener("fetch", (event) => {
-  console.log("The dev service worker is serving the asset.");
+  console.log("The service worker is serving the asset.");
 
   event.respondWith(
     caches.match(event.request).then(function (response) {

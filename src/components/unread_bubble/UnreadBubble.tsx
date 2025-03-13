@@ -3,7 +3,7 @@ import React from "react";
 const MAX_DISPLAY_COUNT = 999;
 
 interface UnreadBubbleProps {
-  count: number;
+    count: number;
 }
 
 const UnreadBubble: React.FC<UnreadBubbleProps> = ({ count }) => {
