@@ -32,9 +32,11 @@ export const requestPermission = async () => {
       return token;
     } else {
       console.log("Permiso de notificaciones denegado");
+      return false;
     }
   } catch (error) {
     console.error("Error obteniendo el token", error);
+    return false;
   }
 };
 
